@@ -19,10 +19,7 @@
         ☰
     </div>
             <div class="header-title">
-
-        <div class="logo">
-            🧮
-        </div>
+         <!-- <div class="logo"></div> -->
 
         <div>
             <h2>Scientific Voice Calculator</h2>
@@ -59,7 +56,7 @@
     <p class="label">Result</p>
 
     <div class="result" id="result">
-        
+        0
     </div>
 
 </div>
@@ -87,46 +84,53 @@
      <div class="calculator-section">
 
     <div class="button-grid">
+     <button onclick="appendValue('7')">7</button>
+<button onclick="appendValue('8')">8</button>
+<button onclick="appendValue('9')">9</button>
 
-        <button>sin</button>
-        <button>cos</button>
-        <button>tan</button>
-        <button>log</button>
+<button onclick="appendValue('4')">4</button>
+<button onclick="appendValue('5')">5</button>
+<button onclick="appendValue('6')">6</button>
 
-        <button>ln</button>
-        <button>√</button>
-        <button>π</button>
-        <button>e</button>
+<button onclick="appendValue('1')">1</button>
+<button onclick="appendValue('2')">2</button>
+<button onclick="appendValue('3')">3</button>
 
-        <button>7</button>
-        <button>8</button>
-        <button>9</button>
-        <button>÷</button>
+<button onclick="appendValue('0')">0</button>
+<button onclick="appendValue('.')">.</button>
 
-        <button>4</button>
-        <button>5</button>
-        <button>6</button>
-        <button>×</button>
+<button onclick="appendValue('+')">+</button>
 
-        <button>1</button>
-        <button>2</button>
-        <button>3</button>
-        <button>-</button>
+<button onclick="appendValue('-')">-</button>
 
-        <button>0</button>
-        <button>.</button>
-        <button>%</button>
-        <button>+</button>
+<button onclick="appendValue('*')">×</button>
 
-        <button>x²</button>
-        <button>AC</button>
-        <button class="equal-btn">=</button>
+<button onclick="appendValue('/')">÷</button>
+
+<button class="equal-btn" onclick="calculateResult()">=</button>
+<button onclick="clearDisplay()">AC</button>
+       
+    <button onclick="calculateScientific('sin')">sin</button>
+<button onclick="calculateScientific('cos')">cos</button>
+<button onclick="calculateScientific('tan')">tan</button>
+<button onclick="calculateScientific('log')">log</button>
+
+<button onclick="calculateScientific('ln')">ln</button>
+<button onclick="calculateScientific('sqrt')">√</button>
+
+<button onclick="insertConstant('pi')">π</button>
+<button onclick="insertConstant('e')">e</button>
+
+<button onclick="squareValue()">x²</button>
+
+
 
     </div>
 
 </div>
+   
 
-       <div class="voice-section">
+<div class="voice-section">
 
     <div class="voice-circle">
         🎤
@@ -138,12 +142,12 @@
 
 </div>
 
-    </div>
-
+</div>
     <!-- Right Sidebar -->
     <div class="right-panel">
 
-        <div class="banner">
+       
+ <div class="banner">
 
     <h2>Voice Calculator</h2>
 
@@ -158,8 +162,8 @@
 
 </div>
 
-       <div class="card">
-    📘 Formula Hub
+<div class="card">
+    📘 Formulas
 </div>
 
 <div class="card">
