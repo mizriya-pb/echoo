@@ -1,3 +1,331 @@
-body{
+/* body{
     background:white;
+} */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, sans-serif;
+
+    background:linear-gradient(
+        135deg,
+        #dff6ff,
+        #e8f8ff,
+        #ffffff
+    );
+
+    padding:20px;
+}
+
+/* Main Layout */
+.container{
+    display:flex;
+    gap:20px;
+}
+
+/* Left Side */
+.left-panel{
+    flex:2;
+
+    background:white;
+
+    padding:25px;
+
+    border-radius:25px;
+
+    box-shadow:
+    0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* Right Side */
+.right-panel{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+/* Sections */
+.header-section,
+.display-section,
+.tab-section,
+.calculator-section,
+.voice-section,
+.banner,
+.card{
+    background:white;
+    border:1px solid #dbefff;
+    border-radius:15px;
+    padding:20px;
+}
+
+.calculator-section{
+    min-height:300px;
+}
+
+.voice-section{
+    min-height:120px;
+}
+
+.banner{
+    min-height:180px;
+}
+
+/* Mobile Responsive */
+@media(max-width:768px){
+
+    .container{
+        flex-direction:column;
+    }
+
+}
+/* HEADER */
+
+.header-section{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.menu-btn{
+    font-size:28px;
+    cursor:pointer;
+}
+
+.header-title{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.logo{
+    width:55px;
+    height:55px;
+    background:#cceeff;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:28px;
+}
+
+.header-title h2{
+    margin:0;
+    color:#1565c0;
+}
+
+.header-title p{
+    margin-top:4px;
+    color:gray;
+    font-size:13px;
+}
+
+.voice-icon{
+    width:50px;
+    height:50px;
+    background:#2196f3;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:22px;
+    color:white;
+}
+
+/* DISPLAY SECTION */
+
+.display-section{
+    margin-top:20px;
+}
+
+.display-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+}
+
+.label{
+    color:gray;
+    font-size:14px;
+}
+
+.expression{
+    font-size:32px;
+    color:#1565c0;
+    margin-top:10px;
+    word-wrap:break-word;
+}
+
+.copy-btn{
+    font-size:24px;
+    cursor:pointer;
+}
+
+.result{
+    text-align:right;
+    font-size:50px;
+    color:#2196f3;
+    font-weight:bold;
+}
+<div class="tab-section">
+
+    <button class="tab-btn">
+        Basic
+    </button>
+
+    <button class="tab-btn active-tab">
+        Scientific
+    </button>
+
+    <button class="tab-btn">
+        Formula
+    </button>
+
+    <button class="tab-btn">
+        Convert
+    </button>
+
+</div>
+
+/* CALCULATOR BUTTONS */
+
+.button-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+}
+
+.button-grid button{
+
+    border:none;
+
+    padding:18px;
+
+    border-radius:16px;
+
+    background:#f6fbff;
+
+    color:#1565c0;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:0.3s;
+}
+
+.button-grid button:hover{
+    transform:scale(1.05);
+    background:#2196f3;
+
+    color:white;
+}
+
+.equal-btn{
+    grid-column:span 2;
+    background:#2196f3 !important;
+    color:white;
+    font-weight:bold;
+}
+
+/* VOICE SECTION */
+
+.voice-section{
+    text-align:center;
+    margin-top:20px;
+}
+
+.voice-circle{
+    width:90px;
+    height:90px;
+    margin:auto;
+
+    border-radius:50%;
+
+    background:#2196f3;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-size:40px;
+
+    color:white;
+
+    box-shadow:0 0 20px rgba(33,150,243,0.4);
+}
+
+.voice-section h3{
+    margin-top:15px;
+    color:#1565c0;
+}
+
+.voice-section p{
+    color:gray;
+    margin-top:5px;
+}
+
+.card{
+
+    background:white;
+
+    padding:18px;
+
+    border-radius:18px;
+
+    color:#1565c0;
+
+    font-weight:bold;
+
+    box-shadow:
+    0 5px 15px rgba(0,0,0,0.05);
+
+    cursor:pointer;
+
+    transition:0.3s;
+}
+
+.card:hover{
+
+    transform:translateY(-4px);
+
+}
+
+.banner{
+
+    text-align:center;
+
+    background:white;
+
+    border-radius:20px;
+
+    padding:20px;
+}
+
+.banner h2{
+    color:#1565c0;
+}
+
+.banner-mic{
+
+    width:80px;
+    height:80px;
+
+    margin:15px auto;
+
+    border-radius:50%;
+
+    background:#2196f3;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    color:white;
+    font-size:35px;
 }

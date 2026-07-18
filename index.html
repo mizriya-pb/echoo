@@ -1,9 +1,187 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scientific Voice Calculator</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Scientific Voice Calculator</h1>
+
+<div class="container">
+
+    <!-- Left Calculator Panel -->
+    <div class="left-panel">
+
+        <div class="header-section">
+
+            <div class="menu-btn">
+        ☰
+    </div>
+            <div class="header-title">
+
+        <div class="logo">
+            🧮
+        </div>
+
+        <div>
+            <h2>Scientific Voice Calculator</h2>
+            <p>Smart Voice-Powered Calculator</p>
+        </div>
+
+    </div>
+
+    <div class="voice-icon">
+        🎤
+    </div>
+        </div>
+
+        <div class="display-section">
+
+    <div class="display-top">
+
+        <div>
+            <p class="label">Expression</p>
+
+            <div class="expression" id="expression">
+                
+            </div>
+        </div>
+
+        <div class="copy-btn">
+            📋
+        </div>
+
+    </div>
+
+    <hr>
+
+    <p class="label">Result</p>
+
+    <div class="result" id="result">
+        
+    </div>
+
+</div>
+
+        <div class="tab-section">
+
+    <button class="tab-btn">
+        Basic
+    </button>
+
+    <button class="tab-btn active-tab">
+        Scientific
+    </button>
+
+    <button class="tab-btn">
+        Formula
+    </button>
+
+    <button class="tab-btn">
+        Convert
+    </button>
+
+</div>
+
+     <div class="calculator-section">
+
+    <div class="button-grid">
+
+        <button>sin</button>
+        <button>cos</button>
+        <button>tan</button>
+        <button>log</button>
+
+        <button>ln</button>
+        <button>√</button>
+        <button>π</button>
+        <button>e</button>
+
+        <button>7</button>
+        <button>8</button>
+        <button>9</button>
+        <button>÷</button>
+
+        <button>4</button>
+        <button>5</button>
+        <button>6</button>
+        <button>×</button>
+
+        <button>1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>-</button>
+
+        <button>0</button>
+        <button>.</button>
+        <button>%</button>
+        <button>+</button>
+
+        <button>x²</button>
+        <button>AC</button>
+        <button class="equal-btn">=</button>
+
+    </div>
+
+</div>
+
+       <div class="voice-section">
+
+    <div class="voice-circle">
+        🎤
+    </div>
+
+    <h3>Tap and Speak</h3>
+
+    <p>Voice Recognition Ready</p>
+
+</div>
+
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="right-panel">
+
+        <div class="banner">
+
+    <h2>Voice Calculator</h2>
+
+    <p>
+        Perform scientific calculations
+        using voice commands.
+    </p>
+
+    <div class="banner-mic">
+        🎤
+    </div>
+
+</div>
+
+       <div class="card">
+    📘 Formula Hub
+</div>
+
+<div class="card">
+    💱 Currency Converter
+</div>
+
+<div class="card">
+    01 Binary Converter
+</div>
+
+<div class="card">
+    % Percentage Tools
+</div>
+
+<div class="card">
+    🕒 History
+</div>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
