@@ -1,3 +1,7 @@
+from datetime import timedelta
+from django.utils import timezone
+import requests
+from .models import CurrencyRate
 import math
 import re
 from django.http import JsonResponse
@@ -199,3 +203,57 @@ def matrix_calculate(request):
         return JsonResponse({"error": "Matrices must be the same size to add/subtract"}, status=400)
 
     return JsonResponse({"result": result})
+
+FALLBACK_RATES = {
+    "USD": 1.0,
+    "INR": 83.30,
+    "EUR": 0.92,
+    "GBP": 0.79,
+    "JPY": 157.20,
+    "AUD": 1.51,
+}
+
+
+def get_current_rates():
+    """Reuses saved rates if they're under 24 hours old, otherwise fetches fresh ones."""
+    latest = CurrencyRate.objects.order_by("-fetched_at").first()
+
+    is_stale = True
+    if latest:
+        is_stale = (timezone.now() - latest.fetched_at) > timedelta(hours=24)
+
+    if latest and not is_stale:
+        return latest.rates  # reuse saved rates, still fresh
+
+    try:
+        response = requests.get("https://open.er-api.com/v6/latest/USD", timeout=8)
+        data = response.json()
+        all_rates = data["rates"]
+        updated = {cur: all_rates[cur] for cur in FALLBACK_RATES if cur in all_rates}
+        updated["USD"] = 1.0
+        CurrencyRate.objects.create(rates=updated)  # save with today's timestamp
+        return updated
+    except Exception:
+        if latest:
+            return latest.rates  # internet failed — use last known rates instead of crashing
+        return FALLBACK_RATES  # no saved rates at all — use the fixed backup table
+    
+def currency_convert(request):
+    amount = request.GET.get("amount")
+    from_cur = request.GET.get("from")
+    to_cur = request.GET.get("to")
+
+    try:
+        amount = float(amount)
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "amount must be a number"}, status=400)
+
+    rates = get_current_rates()
+
+    if from_cur not in rates or to_cur not in rates:
+        return JsonResponse({"error": f"Unsupported currency. Available: {list(rates.keys())}"}, status=400)
+
+    usd_value = amount / rates[from_cur]
+    result = usd_value * rates[to_cur]
+
+    return JsonResponse({"result": round(result, 4)})  
