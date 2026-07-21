@@ -4,7 +4,7 @@
 *{
     margin:0;
     padding:0;
-    box-sizing:border-box;
+    
 }
 
 body{
@@ -20,23 +20,46 @@ body{
     padding:20px;
 }
 
-.container{
+/* .container{
     flex-direction:row;
     display:flex;
     gap:10px;
     align-items:flex-start;
     /* border:3px solid red; */
+.container{
+    display:flex;
+    gap:20px;
+
+    max-width:1200px;
+    margin:auto;
+
+    align-items:flex-start;
 }
 
+.left-panel{
+    width:70%;
+    border:2px solid #2196f3;
+    border-radius:15px;
+}
+
+.right-panel{
+    width:30%;
+    border:2px solid #2196f3;
+    border-radius:15px;
+
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+
+/* 
 .left-panel{
     flex:3;
     border:3px solid blue;
 }
 
-/* .right-panel{
-    flex:1;
-    border:3px solid blue;
-} */
+
 .right-panel{
     flex:1;
     border:3px solid blue;
@@ -44,7 +67,7 @@ body{
     display:flex;
     flex-direction:column;
     gap:15px;
-}
+} */
 /* Sections */
 .header-section,
 .display-section,
@@ -63,22 +86,15 @@ body{
     min-height:300px;
 }
 
-.voice-section{
-    min-height:120px;
-}
-
-.banner{
-    min-height:180px;
-}
 
 /* Mobile Responsive */
- /* @media(max-width:768px){
+  @media(max-width:768px){
 
     .container{
         flex-direction:column;
     }
 
-}  */
+}  
 /* HEADER */
 
 .header{
@@ -107,55 +123,9 @@ body{
     letter-spacing: 2px;
 }
 /* .header-section{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
 
-.menu-btn{
-    font-size:28px;
-    cursor:pointer;
-}
 
-.header-title{
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
 
-.logo{
-    width:55px;
-    height:55px;
-    background:#cceeff;
-    border-radius:50%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:28px;
-} */
-
-.header-title h2{
-    margin:0;
-    color:#1565c0;
-}
-
-.header-title p{
-    margin-top:4px;
-    color:gray;
-    font-size:13px;
-}
-
-/* .voice-icon{
-    width:50px;
-    height:50px;
-    background:#2196f3;
-    border-radius:50%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:22px;
-    color:white;
-} */
 
 /* DISPLAY SECTION */
 
@@ -175,30 +145,22 @@ body{
 }
 
 .expression{
-    font-size:32px;
+    font-size:24px;
     color:#1565c0;
     margin-top:10px;
     word-wrap:break-word;
 }
 
-.copy-btn{
-    font-size:24px;
-    cursor:pointer;
-}
 
 .result{
     text-align:right;
-    font-size:50px;
+    font-size:30px;
     color:#2196f3;
     font-weight:bold;
 }
 /* CALCULATOR BUTTONS */
 
-/* .button-grid{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap: 15px;
-} */
+
 .button-grid{
     display:grid;
     grid-template-columns:repeat(4,1fr);
@@ -208,7 +170,7 @@ body{
 
     border:none;
 
-    padding:18px;
+    padding:12px;
 
     border-radius:16px;
 
@@ -216,7 +178,7 @@ body{
 
     color:#1565c0;
 
-    font-size:18px;
+    font-size:14px;
 
     font-weight:bold;
 
@@ -233,7 +195,7 @@ body{
 }
 
 .equal-btn{
-    grid-column:span 3;
+    grid-column:span 2;
     background:#2196f3 !important;
     color:white;
     font-weight:bold;
@@ -241,43 +203,9 @@ body{
 
 /* VOICE SECTION */
 
-.calculator{
-    position: relative;
-}
 
 
-/* .voice-btn{
-    position: absolute;
 
-    top: 120px;      /* Adjust as needed */
-    /* left: 15px;
-
-    width: 42px;
-    height: 42px;
-
-    border: none;
-    border-radius: 50%;
-
-    background: #2196F3;
-    color: white;
-
-    font-size: 18px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    cursor: pointer;
-
-    box-shadow: 0 3px 10px rgba(0,0,0,.2);
-
-    transition: .3s;
-}
-
-.voice-btn:hover{
-    background:#1976D2;
-    transform:scale(1.08);
-}  */
 .card{
 
     background:white;
@@ -340,42 +268,6 @@ body{
 
 
 
-.formula-panel{
-
-    margin-top:20px;
-
-    background:white;
-
-    padding:20px;
-
-    border-radius:20px;
-
-    display:none;
-}
-
-.formula-panel h2{
-
-    color:#1565c0;
-
-    margin-bottom:15px;
-}
-
-.formula-category{
-
-    background:#eef8ff;
-
-    padding:15px;
-
-    margin-bottom:10px;
-
-    border-radius:12px;
-
-    cursor:pointer;
-
-    font-weight:bold;
-
-    color:#1565c0;
-}
 
 .side-menu{
 
@@ -414,4 +306,26 @@ body{
     background:#eef8ff;
 
     border-radius:10px;
+}
+
+/* test */
+#formulaList,
+#currencyList,
+#binaryList{
+
+    display:none;
+
+    margin-top:10px;
+
+    border-radius:10px;
+
+    overflow:hidden;
+}
+#formulaList .card,
+#currencyList .card,
+#binaryList .card{
+
+    margin-bottom:5px;
+
+    font-size:14px;
 }

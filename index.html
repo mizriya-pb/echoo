@@ -15,6 +15,28 @@
 
         <div class="header-section">
 
+<!-- 
+         <div class="menu-btn" onclick="toggleMenu()">
+            ☰
+         </div>  
+         <div id="sideMenu" class="side-menu">
+
+    <div class="menu-item">
+        🕒 History
+    </div>
+
+    <div class="menu-item">
+        ⚙ Settings
+    </div>
+
+    <div class="menu-item">
+        ℹ About
+    </div>
+
+    </div> -->
+         
+<div class="header">
+    
 
          <div class="menu-btn" onclick="toggleMenu()">
             ☰
@@ -35,44 +57,24 @@
 
     </div>
          
-<div class="header">
-     <button class="menu-btn">
-        <i class="fa fa-bars"></i>
-    </button> 
-
+   
     <h2 class="logo">ECHOO</h2>
 </div>
 
-            <!-- <div class="header-title">
-       
-
-        <div>
-    <h1>ECHOO</h1>
-          
-        </div>
-
-    </div> -->
-
-     <!-- <div class="voice-icon">
-        🎤
-    </div> 
-        </div> -->
-
+           
         <div class="display-section">
 
     <div class="display-top">
 
         <div>
-            <!-- <p class="label">Expression</p> -->
+       
 
             <div class="expression" id="expression">
                 
             </div>
         </div>
 
-        <!-- <div class="copy-btn">
-            
-        </div> -->
+      
 
     </div>
 
@@ -86,19 +88,7 @@
 
 </div>
     
-<div class="voice-section">
-<!-- 
-     <div class="voice-circle">
-      🎤 -->
-         <!-- </div>
-<button id="micBtn" class="voice-btn" title="Tap and Speak">
-    <i class="fas fa-microphone"></i>
-</button> -->
-    
 
-
-
-</div>
 
      <div class="calculator-section">
 
@@ -112,7 +102,7 @@
      <button onclick="appendValue('1')">1</button>
      <button onclick="appendValue('2')">2</button>
      <button onclick="appendValue('3')">3</button>
-     <button></button>
+  
     <button onclick="appendValue('0')">0</button>
     
     <button onclick="appendValue('.')">.</button>
@@ -148,28 +138,16 @@
     <!-- Right Sidebar -->
     <div class="right-panel">
 
-     
-  <div class="banner">
-
-    <!-- <h2>Voice Calculator</h2>
-
-    <p>
-        Perform scientific calculations
-        using voice commands.
-    </p> -->
-
-    <!-- <div class="banner-mic">
-        
-    </div>  -->
-
-</div>
+ 
 
    <div class="card" onclick="toggleFormulaList()">
  Formulas
 </div>
 
 <div id="formulaList" style="display:none; margin-top:10px;">
-    <div class="card">Circle Area</div>
+   <div class="card" onclick="circleArea()">
+Circle Area
+</div>
     <div class="card">Simple Interest</div>
     <div class="card">BMI</div>
     <div class="card">Percentage</div>
