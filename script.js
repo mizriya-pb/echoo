@@ -100,19 +100,68 @@ function squareValue(){
     document.getElementById("result").innerText = result;
 }
 
-// function toggleFormulas(){
+function backspace(){
 
-//     let panel =
-//     document.getElementById("formulaPanel");
+    expression = expression.slice(0, -1);
 
-//     if(panel.style.display === "block"){
+    document.getElementById("expression").innerText = expression;
+}
 
-//         panel.style.display = "none";
-//     }
+function toggleFormulaList() {
 
-//     else{
+    const list = document.getElementById("formulaList");
 
-//         panel.style.display = "block";
-//     }
-// }
+    if(list.style.display === "none"){
+        list.style.display = "block";
+    }
+    else{
+        list.style.display = "none";
+    }
+
+}
+
+function toggleCurrencyList(){
+
+    const list =
+    document.getElementById("currencyList");
+
+    if(list.style.display === "none"){
+        list.style.display = "block";
+    }
+    else{
+        list.style.display = "none";
+    }
+
+}
+
+function toggleBinaryList(){
+
+    const list =
+    document.getElementById("binaryList");
+
+    if(list.style.display === "none"){
+        list.style.display = "block";
+    }
+    else{
+        list.style.display = "none";
+    }
+
+}
+
+
+
+function toggleMenu(){
+
+    const menu =
+    document.getElementById("sideMenu");
+
+    if(menu.style.display === "block"){
+        menu.style.display = "none";
+    }
+    else{
+        menu.style.display = "block";
+    }
+
+}
+
 
