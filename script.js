@@ -194,21 +194,22 @@ formulaSelect.addEventListener("change", function(){
         `;
 
     }
-
+  
     else if(formula === "Volume"){
 
-        shapeContainer.style.display = "block";
+    shapeContainer.style.display = "block";
 
-        shapeSelect.innerHTML = `
-        <option selected disabled>Select Shape</option>
-        <option>Cube</option>
-        <option>Cuboid</option>
-        <option>Cylinder</option>
-        <option>Cone</option>
-        <option>Sphere</option>
-        `;
+    shapeSelect.innerHTML = `
+    <option selected disabled>Select Shape</option>
+    <option>Cube</option>
+    <option>Cuboid</option>
+    <option>Cylinder</option>
+    <option>Cone</option>
+    <option>Sphere</option>
+    `;
+}
 
-    }
+
 
     else if(formula === "Perimeter"){
 
@@ -232,10 +233,44 @@ formulaSelect.addEventListener("change", function(){
 
 });
 
-shapeSelect.addEventListener("change", function(){
 
+shapeSelect.addEventListener("change", function(){
     document.getElementById("formulaInputs").style.display = "block";
 
+    const shape = this.value;
+
+    const value2 =
+    document.getElementById("value2");
+    const value3 =
+document.getElementById("value3");
+
+    if(
+    shape === "Rectangle" ||
+ 
+    shape === "Parallelogram" ||
+    shape === "Cylinder" ||
+    shape === "Cone"
+){
+    value2.style.display = "block";
+    value3.style.display = "none";
+}
+   else if(shape === "Triangle"){
+
+    value2.style.display = "block";
+    value3.style.display = "block";
+}
+
+else if(shape === "Cuboid"){
+
+    value2.style.display = "block";
+    value3.style.display = "block";
+
+}
+else{
+
+    value2.style.display = "none";
+    value3.style.display = "none";
+}
 });
 function calculateFormula(){
 
@@ -252,22 +287,128 @@ function calculateFormula(){
 
     if(formula === "Area"){
 
-        if(shape === "Circle"){
+    if(shape === "Circle"){
 
-            result =
-            Math.PI * value1 * value1;
-
-        }
-
-        else if(shape === "Square"){
-
-            result =
-            value1 * value1;
-
-        }
+        result = Math.PI * value1 * value1;
 
     }
 
-    document.getElementById("result").innerText =
-    result.toFixed(2);
+    else if(shape === "Square"){
+
+        result = value1 * value1;
+
+    }
+
+    else if(shape === "Rectangle"){
+
+        let length =
+parseFloat(document.getElementById("value1").value);
+
+let width =
+parseFloat(document.getElementById("value2").value);
+        result = length * width;
+    }
+
+    else if(shape === "Triangle"){
+
+        let base =
+parseFloat(document.getElementById("value1").value);
+
+let height =
+parseFloat(document.getElementById("value2").value);
+        result = 0.5 * base * height;
+    }
+
+    else if(shape === "Parallelogram"){
+
+       let base =
+parseFloat(document.getElementById("value1").value);
+
+let height =
+parseFloat(document.getElementById("value2").value);
+        result = base * height;
+    }
+}
+else if(formula === "Volume"){
+
+    let value2 =
+    parseFloat(document.getElementById("value2").value);
+
+    let value3 =
+    parseFloat(document.getElementById("value3").value);
+
+    if(shape === "Cube"){
+
+        result = value1 * value1 * value1;
+    }
+
+    else if(shape === "Cuboid"){
+
+        result = value1 * value2 * value3;
+    }
+
+    else if(shape === "Cylinder"){
+
+        result =
+        Math.PI * value1 * value1 * value2;
+    }
+
+    else if(shape === "Cone"){
+
+        result =
+        (1/3) * Math.PI *
+        value1 * value1 * value2;
+    }
+
+    else if(shape === "Sphere"){
+
+        result =
+        (4/3) * Math.PI *
+        value1 * value1 * value1;
+    }
+}
+else if(formula === "Perimeter"){
+
+    let value2 =
+    parseFloat(document.getElementById("value2").value);
+
+    if(shape === "Square"){
+
+        result = 4 * value1;
+    }
+
+    else if(shape === "Rectangle"){
+
+        result = 2 * (value1 + value2);
+    }
+
+    else if(shape === "Triangle"){
+
+  {
+
+    let side1 =
+    parseFloat(document.getElementById("value1").value);
+
+    let side2 =
+    parseFloat(document.getElementById("value2").value);
+
+    let side3 =
+    parseFloat(document.getElementById("value3").value);
+
+    result = side1 + side2 + side3;
+}
+    }
+
+    else if(shape === "Circle"){
+
+        result = 2 * Math.PI * value1;
+    }
+
+    else if(shape === "Parallelogram"){
+
+        result = 2 * (value1 + value2);
+    }
+}
+document.getElementById("result").innerText =
+result.toFixed(2);
 }
