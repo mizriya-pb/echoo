@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECHOO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,25 +16,6 @@
 
         <div class="header-section">
 
-<!-- 
-         <div class="menu-btn" onclick="toggleMenu()">
-            ☰
-         </div>  
-         <div id="sideMenu" class="side-menu">
-
-    <div class="menu-item">
-        🕒 History
-    </div>
-
-    <div class="menu-item">
-        ⚙ Settings
-    </div>
-
-    <div class="menu-item">
-        ℹ About
-    </div>
-
-    </div> -->
          
 <div class="header">
     
@@ -57,10 +39,12 @@
 
     </div>
          
-   
+   <div class="title-box">
     <h2 class="logo">ECHOO</h2>
+   
 </div>
-
+</div>
+   
            
         <div class="display-section">
 
@@ -93,71 +77,96 @@
      <div class="calculator-section">
 
     <div class="button-grid">
-     <button onclick="appendValue('7')">7</button>
-     <button onclick="appendValue('8')">8</button>
-     <button onclick="appendValue('9')">9</button>
-     <button onclick="appendValue('4')">4</button>
-     <button onclick="appendValue('5')">5</button>
-     <button onclick="appendValue('6')">6</button>
-     <button onclick="appendValue('1')">1</button>
-     <button onclick="appendValue('2')">2</button>
-     <button onclick="appendValue('3')">3</button>
-  
-    <button onclick="appendValue('0')">0</button>
-    
-    <button onclick="appendValue('.')">.</button>
-    <button onclick="appendValue('+')">+</button>
-    <button onclick="appendValue('-')">-</button>
-    <button onclick="appendValue('*')">×</button>
-    <button onclick="appendValue('/')">÷</button>
+    <!-- Row 1 -->
+<button onclick="appendValue('7')">7</button>
+<button onclick="appendValue('8')">8</button>
+<button onclick="appendValue('9')">9</button>
+<button onclick="backspace()">⌫</button>
 
-    <button class="equal-btn" onclick="calculateResult()">=</button>
-    <button onclick="backspace()">⌫</button>
-    <button onclick="clearDisplay()">AC</button> 
+<!-- Row 2 -->
+<button onclick="appendValue('4')">4</button>
+<button onclick="appendValue('5')">5</button>
+<button onclick="appendValue('6')">6</button>
+<button class="ac-btn" onclick="clearDisplay()">AC</button>
 
-   <button onclick="calculateScientific('sin')">sin</button>
-   <button onclick="calculateScientific('cos')">cos</button>
-   <button onclick="calculateScientific('tan')">tan</button>
-   <button onclick="calculateScientific('log')">log</button>
+<!-- Row 3 -->
+<button onclick="appendValue('1')">1</button>
+<button onclick="appendValue('2')">2</button>
+<button onclick="appendValue('3')">3</button>
+<button onclick="appendValue('+')">+</button>
 
-   <button onclick="calculateScientific('ln')">ln</button>
-   <button onclick="calculateScientific('sqrt')">√</button>
+<!-- Row 4 -->
+<button onclick="appendValue('.')">.</button>
+<button onclick="appendValue('0')">0</button>
+<button class="equal-btn" onclick="calculateResult()">=</button>
+<button onclick="appendValue('-')">-</button>
 
-   <button onclick="insertConstant('pi')">π</button>
-   <button onclick="insertConstant('e')">e</button>
-   <button onclick="squareValue()">x²</button>
 
+<!-- Row 5 -->
+<button onclick="calculateScientific('sin')">sin</button>
+<button onclick="calculateScientific('cos')">cos</button>
+<button onclick="calculateScientific('tan')">tan</button>
+<button onclick="appendValue('*')">×</button>
+
+
+<!-- Row 6 -->
+<button onclick="calculateScientific('log')">log</button>
+<button onclick="calculateScientific('ln')">ln</button>
+<button onclick="calculateScientific('sqrt')">√</button>
+<button onclick="appendValue('/')">÷</button>
+
+<!-- Row 7 -->
+<button onclick="insertConstant('pi')">π</button>
+<button onclick="insertConstant('e')">e</button>
+<button onclick="squareValue()">x²</button>
+<button disabled></button>
 
 
     </div>
 
 </div>
-
+</div>
 
 </div>
     <!-- Right Sidebar -->
     <div class="right-panel">
 
  
-
-   <div class="card" onclick="toggleFormulaList()">
- Formulas
+<div class="card dropdown-title" onclick="toggleFormulaList()">
+    Formulas ▼
 </div>
 
-<div id="formulaList" style="display:none; margin-top:10px;">
-   <div class="card" onclick="circleArea()">
-Circle Area
-</div>
+<div id="formulaList">
+
+    <div class="card">Area</div>
+
+    <div class="card">Volume</div>
+
+    <div class="card">Perimeter</div>
+
+    <div class="card">Speed</div>
+
     <div class="card">Simple Interest</div>
-    <div class="card">BMI</div>
-    <div class="card">Percentage</div>
-    <div class="card">Mean</div>
-    <div class="card">Median</div>
-    <div class="card">Mode</div>
-    <div class="card">Variance</div>
-    <div class="card">Standard Deviation</div>
-</div>
 
+    <div class="card">BMI</div>
+
+    <div class="card">Percentage</div>
+
+    <div class="card">Mean</div>
+
+    <div class="card">Median</div>
+
+    <div class="card">Mode</div>
+
+    <div class="card">Variance</div>
+
+    <div class="card">Standard Deviation</div>
+
+    <div class="card">Z-Score</div>
+
+    <div class="card">Covariance</div>
+
+</div>
     <div class="card" onclick="toggleCurrencyList()">
     Currency Converter
 </div>
@@ -183,7 +192,7 @@ Circle Area
 
 </div>
 
-</div>
+
 
 <script src="script.js"></script>
 </body>

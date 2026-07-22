@@ -1,73 +1,49 @@
-/* body{
-    background:white;
-} */
 *{
     margin:0;
     padding:0;
-    
+    box-sizing:border-box;
 }
 
 body{
-    font-family:Arial, sans-serif;
+    font-family: Arial, sans-serif;
 
-    background:linear-gradient(
+    background: linear-gradient(
         135deg,
-        #dff6ff,
-        #e8f8ff,
+        #ffeef5,
+        #fff6fa,
         #ffffff
     );
 
     padding:20px;
 }
-
-/* .container{
-    flex-direction:row;
-    display:flex;
-    gap:10px;
-    align-items:flex-start;
-    /* border:3px solid red; */
 .container{
     display:flex;
-    gap:20px;
+    gap:15px;
 
-    max-width:1200px;
+    max-width:1100px;
     margin:auto;
 
     align-items:flex-start;
 }
 
 .left-panel{
-    width:70%;
-    border:2px solid #2196f3;
+    flex:2.5;
+    min-width: 0;
+    border:2px solid #ff9eb5;
     border-radius:15px;
 }
-
 .right-panel{
-    width:30%;
-    border:2px solid #2196f3;
-    border-radius:15px;
-
+     flex:1;
+    min-width: 220px;
+  
     display:flex;
     flex-direction:column;
     gap:15px;
+
+    border:2px solid #ff9eb5;
+    border-radius:15px;
 }
 
-
-/* 
-.left-panel{
-    flex:3;
-    border:3px solid blue;
-}
-
-
-.right-panel{
-    flex:1;
-    border:3px solid blue;
-
-    display:flex;
-    flex-direction:column;
-    gap:15px;
-} */
 /* Sections */
 .header-section,
 .display-section,
@@ -83,7 +59,8 @@ body{
 }
 
 .calculator-section{
-    min-height:300px;
+    padding: 20px;
+    overflow: hidden;
 }
 
 
@@ -115,12 +92,28 @@ body{
     cursor: pointer;
 }
 
-.logo{
+/* .logo{
     margin: 0;
     font-size: 30px;
     font-weight: bold;
     color: #2196f3;
     letter-spacing: 2px;
+} */
+ .logo{
+    margin:0;
+
+    font-family:'Cinzel', serif;
+
+    font-size:40px;
+
+    letter-spacing:6px;
+
+    color:#d95d8a;
+
+    text-shadow:
+        0px 2px 8px rgba(217,93,138,0.25);
+
+    font-weight:600;
 }
 /* .header-section{
 
@@ -164,7 +157,7 @@ body{
 .button-grid{
     display:grid;
     grid-template-columns:repeat(4,1fr);
-    gap:15px;
+    gap:12px;
 }
 .button-grid button{
 
@@ -185,6 +178,18 @@ body{
     cursor:pointer;
 
     transition:0.3s;
+
+
+}
+    .equal-btn{
+    background:#ffb6c1 !important;
+    color:white;
+    font-weight:bold;
+}
+.ac-btn{
+    background:#ffb6c1 !important;
+    color:white;
+    font-weight:bold;
 }
 
 .button-grid button:hover{
@@ -194,12 +199,6 @@ body{
     color:white;
 }
 
-.equal-btn{
-    grid-column:span 2;
-    background:#2196f3 !important;
-    color:white;
-    font-weight:bold;
-}
 
 /* VOICE SECTION */
 
@@ -327,5 +326,23 @@ body{
 
     margin-bottom:5px;
 
+    font-size:14px;
+}
+.title-box{
+    text-align:center;
+}
+.dropdown-title{
+    background:#ffe4ec;
+    color:#e75480;
+    font-weight:bold;
+}
+
+#formulaList{
+    display:none;
+}
+
+#formulaList .card{
+    margin-top:6px;
+    padding:12px;
     font-size:14px;
 }
