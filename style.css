@@ -331,18 +331,32 @@ body{
 .title-box{
     text-align:center;
 }
-.dropdown-title{
-    background:#ffe4ec;
-    color:#e75480;
+.right-panel label{
     font-weight:bold;
+    color:#e75480;
+    margin-top:10px;
 }
 
-#formulaList{
-    display:none;
-}
-
-#formulaList .card{
-    margin-top:6px;
+.right-panel select{
+    width:100%;
     padding:12px;
+    margin-top:8px;
+    margin-bottom:20px;
+
+    border:2px solid #ffb6c1;
+    border-radius:10px;
+
+    background:white;
+
     font-size:14px;
+
+    color:#444;
+
+    cursor:pointer;
 }
+
+.right-panel select:focus{
+    outline:none;
+    border-color:#e75480;
+}
+

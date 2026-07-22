@@ -129,65 +129,81 @@
 
 </div>
     <!-- Right Sidebar -->
-    <div class="right-panel">
+   <div class="right-panel">
 
- 
-<div class="card dropdown-title" onclick="toggleFormulaList()">
-    Formulas ▼
+    <label>Formulas</label>
+    <select id="formulaSelect">
+        <option selected disabled>Select Formula</option>
+
+        <option>Area</option>
+        <option>Volume</option>
+        <option>Perimeter</option>
+        <option>Speed</option>
+        <option>Simple Interest</option>
+        <option>BMI</option>
+        <option>Percentage</option>
+        <option>Mean</option>
+        <option>Median</option>
+        <option>Mode</option>
+        <option>Variance</option>
+        <option>Standard Deviation</option>
+        <option>Z-Score</option>
+        <option>Covariance</option>
+    </select>
+    <div id="shapeContainer" style="display:none;">
+
+    <label>Select Shape</label>
+
+    <select id="shapeSelect">
+
+        <option selected disabled>Select Shape</option>
+
+        <option>Circle</option>
+        <option>Rectangle</option>
+        <option>Square</option>
+        <option>Triangle</option>
+        <option>Parallelogram</option>
+
+    </select>
+    <div id="formulaInputs" style="display:none; margin-top:10px;">
+
+    <input type="number" id="value1" placeholder="Enter Value">
+
+    <input type="number" id="value2" placeholder="Second Value" style="display:none;">
+
+    <button onclick="calculateFormula()">
+        Calculate
+    </button>
+
 </div>
 
-<div id="formulaList">
-
-    <div class="card">Area</div>
-
-    <div class="card">Volume</div>
-
-    <div class="card">Perimeter</div>
-
-    <div class="card">Speed</div>
-
-    <div class="card">Simple Interest</div>
-
-    <div class="card">BMI</div>
-
-    <div class="card">Percentage</div>
-
-    <div class="card">Mean</div>
-
-    <div class="card">Median</div>
-
-    <div class="card">Mode</div>
-
-    <div class="card">Variance</div>
-
-    <div class="card">Standard Deviation</div>
-
-    <div class="card">Z-Score</div>
-
-    <div class="card">Covariance</div>
-
-</div>
-    <div class="card" onclick="toggleCurrencyList()">
-    Currency Converter
 </div>
 
-<div id="currencyList" style="display:none; margin-top:10px;">
-    <div class="card">INR → USD</div>
-    <div class="card">USD → INR</div>
-    <div class="card">INR → EUR</div>
-    <div class="card">EUR → INR</div>
-    <div class="card">INR → GBP</div>
-</div>
+    <label>Currency Converter</label>
+    <select id="currencySelect">
+        <option selected disabled>Select Conversion</option>
 
-   <div class="card" onclick="toggleBinaryList()">
-     Binary Converter
-</div>
+        <option>INR → USD</option>
+        <option>USD → INR</option>
+        <option>INR → EUR</option>
+        <option>EUR → INR</option>
+        <option>INR → GBP</option>
+        <option>GBP → INR</option>
+    </select>
 
-<div id="binaryList" style="display:none; margin-top:10px;">
-    <div class="card">Decimal → Binary</div>
-    <div class="card">Binary → Decimal</div>
-</div>
+    <label>Binary Converter</label>
+    <select id="binarySelect">
+        <option selected disabled>Select Conversion</option>
 
+        <option>Decimal → Binary</option>
+        <option>Binary → Decimal</option>
+        <option>Decimal → Octal</option>
+        <option>Octal → Decimal</option>
+        <option>Decimal → Hexadecimal</option>
+        <option>Hexadecimal → Decimal</option>
+    </select>
+
+</div>
   
 
 </div>

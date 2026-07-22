@@ -165,3 +165,109 @@ function toggleMenu(){
 }
 
 
+const formulaSelect =
+document.getElementById("formulaSelect");
+
+const shapeContainer =
+document.getElementById("shapeContainer");
+
+const shapeSelect =
+document.getElementById("shapeSelect");
+
+formulaSelect.addEventListener("change", function(){
+
+    let formula = this.value;
+
+    shapeSelect.innerHTML = "";
+
+    if(formula === "Area"){
+
+        shapeContainer.style.display = "block";
+
+        shapeSelect.innerHTML = `
+        <option selected disabled>Select Shape</option>
+        <option>Circle</option>
+        <option>Rectangle</option>
+        <option>Square</option>
+        <option>Triangle</option>
+        <option>Parallelogram</option>
+        `;
+
+    }
+
+    else if(formula === "Volume"){
+
+        shapeContainer.style.display = "block";
+
+        shapeSelect.innerHTML = `
+        <option selected disabled>Select Shape</option>
+        <option>Cube</option>
+        <option>Cuboid</option>
+        <option>Cylinder</option>
+        <option>Cone</option>
+        <option>Sphere</option>
+        `;
+
+    }
+
+    else if(formula === "Perimeter"){
+
+        shapeContainer.style.display = "block";
+
+        shapeSelect.innerHTML = `
+        <option selected disabled>Select Shape</option>
+        <option>Circle</option>
+        <option>Rectangle</option>
+        <option>Square</option>
+        <option>Triangle</option>
+        <option>Parallelogram</option>
+        `;
+
+    }
+
+    else{
+
+        shapeContainer.style.display = "none";
+    }
+
+});
+
+shapeSelect.addEventListener("change", function(){
+
+    document.getElementById("formulaInputs").style.display = "block";
+
+});
+function calculateFormula(){
+
+    let formula =
+    document.getElementById("formulaSelect").value;
+
+    let shape =
+    document.getElementById("shapeSelect").value;
+
+    let value1 =
+    parseFloat(document.getElementById("value1").value);
+
+    let result = 0;
+
+    if(formula === "Area"){
+
+        if(shape === "Circle"){
+
+            result =
+            Math.PI * value1 * value1;
+
+        }
+
+        else if(shape === "Square"){
+
+            result =
+            value1 * value1;
+
+        }
+
+    }
+
+    document.getElementById("result").innerText =
+    result.toFixed(2);
+}
