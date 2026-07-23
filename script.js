@@ -178,6 +178,8 @@ formulaSelect.addEventListener("change", function(){
 
     let formula = this.value;
 
+    shapeSelect.style.display = "block";
+
     shapeSelect.innerHTML = "";
 
     if(formula === "Area"){
@@ -225,7 +227,37 @@ formulaSelect.addEventListener("change", function(){
         `;
 
     }
+    else if(formula === "Speed"){
+        
+    shapeContainer.style.display = "block";
+     shapeSelect.style.display = "none";
 
+    document.getElementById("formulaInputs").style.display = "block";
+
+    document.getElementById("value2").style.display = "block";
+
+    document.getElementById("value3").style.display = "none";
+
+    document.getElementById("value1").placeholder = "Distance";
+
+    document.getElementById("value2").placeholder = "Time";
+}
+else if(formula === "Simple Interest"){
+
+    shapeContainer.style.display = "none";
+
+    document.getElementById("formulaInputs").style.display = "block";
+
+    document.getElementById("value2").style.display = "block";
+
+    document.getElementById("value3").style.display = "block";
+
+    document.getElementById("value1").placeholder = "Principal Amount";
+
+    document.getElementById("value2").placeholder = "Rate (%)";
+
+    document.getElementById("value3").placeholder = "Time (Years)";
+}
     else{
 
         shapeContainer.style.display = "none";
@@ -408,6 +440,29 @@ else if(formula === "Perimeter"){
 
         result = 2 * (value1 + value2);
     }
+}
+else if(formula === "Speed"){
+
+    let distance =
+    parseFloat(document.getElementById("value1").value);
+
+    let time =
+    parseFloat(document.getElementById("value2").value);
+
+    result = distance / time;
+}
+else if(formula === "Simple Interest"){
+
+    let principal =
+    parseFloat(document.getElementById("value1").value);
+
+    let rate =
+    parseFloat(document.getElementById("value2").value);
+
+    let time =
+    parseFloat(document.getElementById("value3").value);
+
+    result = (principal * rate * time) / 100;
 }
 document.getElementById("result").innerText =
 result.toFixed(2);
