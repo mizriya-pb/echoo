@@ -9,9 +9,9 @@ body{
 
     background: linear-gradient(
         135deg,
-        #ffeef5,
-        #fff6fa,
-        #ffffff
+        #047134,
+        #036645'
+        #680404
     );
 
     padding:20px;
@@ -29,7 +29,7 @@ body{
 .left-panel{
     flex:2.5;
     min-width: 0;
-    border:2px solid #ff9eb5;
+    border:2px solid #02542b;
     border-radius:15px;
 }
 .right-panel{
@@ -40,7 +40,7 @@ body{
     flex-direction:column;
     gap:15px;
 
-    border:2px solid #ff9eb5;
+    border:2px solid #0a6815;
     border-radius:15px;
 }
 
@@ -53,7 +53,7 @@ body{
 .banner,
 .card{
     background:white;
-    border:1px solid #dbefff;
+    border:1px solid #105903;
     border-radius:15px;
     padding:20px;
 }
@@ -108,10 +108,10 @@ body{
 
     letter-spacing:6px;
 
-    color:#d95d8a;
+    color:#0b9044;
 
     text-shadow:
-        0px 2px 8px rgba(217,93,138,0.25);
+        0px 2px 8px rgba(4, 104, 84, 0.25);
 
     font-weight:600;
 }
@@ -133,13 +133,13 @@ body{
 }
 
 .label{
-    color:gray;
+    color:rgb(155, 169, 161);
     font-size:14px;
 }
 
 .expression{
     font-size:24px;
-    color:#1565c0;
+    color:#0f1510;
     margin-top:10px;
     word-wrap:break-word;
 }
@@ -148,7 +148,7 @@ body{
 .result{
     text-align:right;
     font-size:30px;
-    color:#2196f3;
+    color:#dc242a;
     font-weight:bold;
 }
 /* CALCULATOR BUTTONS */
@@ -167,9 +167,9 @@ body{
 
     border-radius:16px;
 
-    background:#f6fbff;
+    background:#d5df76;
 
-    color:#1565c0;
+    color:#060606;
 
     font-size:14px;
 
@@ -182,19 +182,19 @@ body{
 
 }
     .equal-btn{
-    background:#ffb6c1 !important;
+    background:#08de7e  !important;
     color:white;
     font-weight:bold;
 }
 .ac-btn{
-    background:#ffb6c1 !important;
+    background:#55de3a  !important;
     color:white;
     font-weight:bold;
 }
 
 .button-grid button:hover{
     transform:scale(1.05);
-    background:#2196f3;
+    background:#bfcfc6;
 
     color:white;
 }
@@ -213,7 +213,7 @@ body{
 
     border-radius:18px;
 
-    color:#1565c0;
+    color:#d6550a;
 
     font-weight:bold;
 
@@ -243,7 +243,7 @@ body{
 }
 
 .banner h2{
-    color:#1565c0;
+    color:#0fe593;
 }
 
 .banner-mic{
@@ -255,7 +255,7 @@ body{
 
     border-radius:50%;
 
-    background:#2196f3;
+    background:#16a085;
 
     display:flex;
     justify-content:center;
@@ -295,14 +295,14 @@ body{
 
     cursor:pointer;
 
-    color:#1565c0;
+    color:#03ad7a;
 
     font-weight:bold;
 }
 
 .menu-item:hover{
 
-    background:#eef8ff;
+    background:#33ea17;
 
     border-radius:10px;
 }
@@ -333,7 +333,7 @@ body{
 }
 .right-panel label{
     font-weight:bold;
-    color:#e75480;
+    color:#0bbf7d;
     margin-top:10px;
 }
 
@@ -343,20 +343,20 @@ body{
     margin-top:8px;
     margin-bottom:20px;
 
-    border:2px solid #ffb6c1;
+    border:2px solid #10df77;
     border-radius:10px;
 
     background:white;
 
     font-size:14px;
 
-    color:#444;
+    color:#a3f07a;
 
     cursor:pointer;
 }
 
 .right-panel select:focus{
     outline:none;
-    border-color:#e75480;
+    border-color:#88f1c5;
 }
 

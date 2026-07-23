@@ -755,33 +755,59 @@ function convertCurrency(){
     let result = 0;
 
     if(type === "INR → USD"){
-        result = amount / 85;
-    }
-    else if(type === "USD → INR"){
-        result = amount * 85;
-    }
+    result = amount / 85;
+}
+else if(type === "USD → INR"){
+    result = amount * 85;
+}
+else if(type === "INR → EUR"){
+    result = amount / 98;
+}
+else if(type === "EUR → INR"){
+    result = amount * 98;
+}
+else if(type === "INR → GBP"){
+    result = amount / 115;
+}
+else if(type === "GBP → INR"){
+    result = amount * 115;
+}
 
     document.getElementById("result").innerText =
     result.toFixed(2);
 }
+
 function convertBinary(){
 
-    let value =
-    document.getElementById("binaryValue").value;
+    let value = document.getElementById("binaryValue").value;
 
-    let type =
-    document.getElementById("binarySelect").value;
+    let type = document.getElementById("binarySelect").value;
 
     let result = "";
 
     if(type === "Decimal → Binary"){
-        result = parseInt(value).toString(2);
+        result = parseInt(value,10).toString(2);
     }
 
     else if(type === "Binary → Decimal"){
-        result = parseInt(value, 2);
+        result = parseInt(value,2);
     }
 
-    document.getElementById("result").innerText =
-    result;
+    else if(type === "Decimal → Octal"){
+        result = parseInt(value,10).toString(8);
+    }
+
+    else if(type === "Octal → Decimal"){
+        result = parseInt(value,8);
+    }
+
+    else if(type === "Decimal → Hexadecimal"){
+        result = parseInt(value,10).toString(16).toUpperCase();
+    }
+
+    else if(type === "Hexadecimal → Decimal"){
+        result = parseInt(value,16);
+    }
+
+    document.getElementById("result").innerText = result;
 }
