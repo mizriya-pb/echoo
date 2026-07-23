@@ -179,6 +179,7 @@ formulaSelect.addEventListener("change", function(){
     let formula = this.value;
 
     shapeSelect.style.display = "block";
+    document.getElementById("formulaInputs").style.display = "none";
 
     shapeSelect.innerHTML = "";
 
@@ -243,8 +244,8 @@ formulaSelect.addEventListener("change", function(){
     document.getElementById("value2").placeholder = "Time";
 }
 else if(formula === "Simple Interest"){
-
-    shapeContainer.style.display = "none";
+    shapeContainer.style.display="block"
+    shapeSelect.style.display = "none";
 
     document.getElementById("formulaInputs").style.display = "block";
 
@@ -258,13 +259,128 @@ else if(formula === "Simple Interest"){
 
     document.getElementById("value3").placeholder = "Time (Years)";
 }
+else if(formula === "BMI"){
+
+    shapeContainer.style.display = "block";
+    shapeSelect.style.display = "none";
+
+    document.getElementById("formulaInputs").style.display = "block";
+
+    document.getElementById("value2").style.display = "block";
+    document.getElementById("value3").style.display = "none";
+
+    document.getElementById("value1").placeholder = "Weight (kg)";
+    document.getElementById("value2").placeholder = "Height (m)";
+}
+else if(formula === "Percentage"){
+
+    shapeContainer.style.display = "block";
+    shapeSelect.style.display = "none";
+   
+    document.getElementById("formulaInputs").style.display = "block";
+
+    document.getElementById("value2").style.display = "block";
+
+    document.getElementById("value3").style.display = "none";
+
+    document.getElementById("value1").placeholder = "Obtained Marks";
+
+    document.getElementById("value2").placeholder = "Total Marks";
+}
+  
+    else if(
+    formula === "Mean" ||
+    formula === "Median" ||
+    formula === "Mode"
+){
+
+    shapeContainer.style.display = "block";
+    shapeSelect.style.display = "none";
+   
+  
+    document.getElementById("formulaInputs").style.display = "block";
+
+    document.getElementById("value2").style.display = "none";
+
+    document.getElementById("value3").style.display = "none";
+
+    document.getElementById("value1").placeholder =
+    "Enter numbers";
+}
+else if(formula === "Variance"){
+
+    shapeContainer.style.display = "block";
+    shapeSelect.style.display = "none";
+
+    document.getElementById("formulaInputs").style.display = "block";
+
+    document.getElementById("value2").style.display = "none";
+    document.getElementById("value3").style.display = "none";
+
+    document.getElementById("value1").placeholder =
+    "Enter numbers";
+}
+else if(formula === "Standard Deviation"){
+
+    shapeContainer.style.display = "block";
+    shapeSelect.style.display = "none";
+
+    document.getElementById("formulaInputs").style.display = "block";
+
+    document.getElementById("value2").style.display = "none";
+    document.getElementById("value3").style.display = "none";
+
+    document.getElementById("value1").placeholder =
+    "Enter numbers";
+}
+else if(formula === "Z-Score"){
+
+    shapeContainer.style.display = "block";
+    shapeSelect.style.display = "none";
+
+    document.getElementById("formulaInputs").style.display = "block";
+
+    document.getElementById("value2").style.display = "block";
+    document.getElementById("value3").style.display = "block";
+
+    document.getElementById("value1").placeholder = "Value (x)";
+    document.getElementById("value2").placeholder = "Mean";
+    document.getElementById("value3").placeholder = "Std Deviation";
+}
+else if(formula === "Covariance"){
+
+    shapeContainer.style.display = "block";
+    shapeSelect.style.display = "none";
+
+    document.getElementById("formulaInputs").style.display = "block";
+
+    document.getElementById("value2").style.display = "block";
+    document.getElementById("value3").style.display = "none";
+
+    document.getElementById("value1").placeholder =
+    "Dataset X";
+
+    document.getElementById("value2").placeholder =
+    "Dataset Y";
+}
     else{
 
         shapeContainer.style.display = "none";
     }
 
 });
+document.getElementById("binarySelect")
+.addEventListener("change", function(){
 
+    document.getElementById("binaryInputs")
+    .style.display = "block";
+});
+document.getElementById("currencySelect")
+.addEventListener("change", function(){
+
+    document.getElementById("currencyInputs")
+    .style.display = "block";
+});
 
 shapeSelect.addEventListener("change", function(){
     document.getElementById("formulaInputs").style.display = "block";
@@ -298,6 +414,7 @@ else if(shape === "Cuboid"){
     value3.style.display = "block";
 
 }
+
 else{
 
     value2.style.display = "none";
@@ -316,7 +433,10 @@ function calculateFormula(){
     parseFloat(document.getElementById("value1").value);
 
     let result = 0;
-
+     let inputText =
+     document.getElementById("value1").value;
+     let numbers =
+     inputText.split(",").map(Number);
     if(formula === "Area"){
 
     if(shape === "Circle"){
@@ -464,6 +584,204 @@ else if(formula === "Simple Interest"){
 
     result = (principal * rate * time) / 100;
 }
+else if(formula === "BMI"){
+
+    let weight =
+    parseFloat(document.getElementById("value1").value);
+
+    let height =
+    parseFloat(document.getElementById("value2").value);
+
+    result = weight / (height * height);
+}
+else if(formula === "Percentage"){
+
+    let obtained =
+    parseFloat(document.getElementById("value1").value);
+
+    let total =
+    parseFloat(document.getElementById("value2").value);
+
+    result = (obtained / total) * 100;
+}
+else if(formula === "Mean"){
+
+    let numbers =
+    document.getElementById("value1").value
+    .split(",")
+    .map(Number);
+
+    let sum = 0;
+
+    for(let i = 0; i < numbers.length; i++){
+        sum += numbers[i];
+    }
+
+    result = sum / numbers.length;
+}
+else if(formula === "Median"){
+
+    let numbers =
+    document.getElementById("value1").value
+    .split(",")
+    .map(Number);
+
+    numbers.sort((a,b) => a-b);
+
+    let middle =
+    Math.floor(numbers.length / 2);
+
+    if(numbers.length % 2 === 0){
+
+        result =
+        (numbers[middle-1] + numbers[middle]) / 2;
+    }
+    else{
+
+        result = numbers[middle];
+    }
+}
+else if(formula === "Mode"){
+
+    let numbers =
+    document.getElementById("value1").value
+    .split(",")
+    .map(Number);
+
+    let count = {};
+    let maxCount = 0;
+    let mode = numbers[0];
+
+    for(let num of numbers){
+
+        count[num] = (count[num] || 0) + 1;
+
+        if(count[num] > maxCount){
+
+            maxCount = count[num];
+            mode = num;
+        }
+    }
+
+    result = mode;
+}
+else if(formula === "Variance"){
+
+    let numbers =
+    document.getElementById("value1").value
+    .split(",")
+    .map(Number);
+
+    let mean =
+    numbers.reduce((a,b)=>a+b,0) / numbers.length;
+
+    let variance =
+    numbers.reduce((sum,num)=>
+    sum + Math.pow(num-mean,2),0)
+    / numbers.length;
+
+    result = variance;
+}
+else if(formula === "Standard Deviation"){
+
+    let numbers =
+    document.getElementById("value1").value
+    .split(",")
+    .map(Number);
+
+    let mean =
+    numbers.reduce((a,b)=>a+b,0) / numbers.length;
+
+    let variance =
+    numbers.reduce((sum,num)=>
+    sum + Math.pow(num-mean,2),0)
+    / numbers.length;
+
+    result = Math.sqrt(variance);
+}
+else if(formula === "Z-Score"){
+
+    let x =
+    parseFloat(document.getElementById("value1").value);
+
+    let mean =
+    parseFloat(document.getElementById("value2").value);
+
+    let stdDev =
+    parseFloat(document.getElementById("value3").value);
+
+    result = (x - mean) / stdDev;
+}
+else if(formula === "Covariance"){
+
+    let x =
+    document.getElementById("value1").value
+    .split(",")
+    .map(Number);
+
+    let y =
+    document.getElementById("value2").value
+    .split(",")
+    .map(Number);
+
+    let meanX =
+    x.reduce((a,b)=>a+b,0) / x.length;
+
+    let meanY =
+    y.reduce((a,b)=>a+b,0) / y.length;
+
+    let sum = 0;
+
+    for(let i=0; i<x.length; i++){
+
+        sum +=
+        (x[i]-meanX) *
+        (y[i]-meanY);
+    }
+
+    result = sum / x.length;
+}
 document.getElementById("result").innerText =
 result.toFixed(2);
+}
+function convertCurrency(){
+
+    let amount =
+    parseFloat(document.getElementById("currencyAmount").value);
+
+    let type =
+    document.getElementById("currencySelect").value;
+
+    let result = 0;
+
+    if(type === "INR → USD"){
+        result = amount / 85;
+    }
+    else if(type === "USD → INR"){
+        result = amount * 85;
+    }
+
+    document.getElementById("result").innerText =
+    result.toFixed(2);
+}
+function convertBinary(){
+
+    let value =
+    document.getElementById("binaryValue").value;
+
+    let type =
+    document.getElementById("binarySelect").value;
+
+    let result = "";
+
+    if(type === "Decimal → Binary"){
+        result = parseInt(value).toString(2);
+    }
+
+    else if(type === "Binary → Decimal"){
+        result = parseInt(value, 2);
+    }
+
+    document.getElementById("result").innerText =
+    result;
 }
