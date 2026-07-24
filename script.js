@@ -1,6 +1,28 @@
 // // console.log("Project Started");
 // console.log("Scientific Voice Calculator Started");
 let expression = "";
+let historyList = [];
+function saveHistory(){
+
+    localStorage.setItem(
+        "echoHistory",
+        JSON.stringify(historyList)
+    );
+}
+
+function loadHistory(){
+
+    let savedHistory =
+    localStorage.getItem("echoHistory");
+
+    if(savedHistory){
+
+        historyList =
+        JSON.parse(savedHistory);
+    }
+}
+
+loadHistory();
 
 function appendValue(value) {
 
@@ -15,7 +37,10 @@ function calculateResult() {
 
         let answer = eval(expression);
 
-        document.getElementById("result").innerText = answer;
+      document.getElementById("result").innerText = answer;
+
+historyList.push(expression + " = " + answer);
+saveHistory();
 
     } catch {
 
@@ -71,6 +96,8 @@ function calculateScientific(type){
     }
 
     document.getElementById("result").innerText = result;
+    historyList.push(type +"(" + num + ") = " + result);
+    saveHistory();
 }
 
 function insertConstant(type){
@@ -98,6 +125,8 @@ function squareValue(){
     let result = num * num;
 
     document.getElementById("result").innerText = result;
+    historyList.push(num + "² = " + result);
+    saveHistory();
 }
 
 function backspace(){
@@ -448,6 +477,7 @@ function calculateFormula(){
     parseFloat(document.getElementById("value1").value);
 
     let result = 0;
+    let historyText = "";
      let inputText =
      document.getElementById("value1").value;
      let numbers =
@@ -456,13 +486,25 @@ function calculateFormula(){
 
     if(shape === "Circle"){
 
-        result = Math.PI * value1 * value1;
+       result = Math.PI * value1 * value1;
+
+historyText =
+"Area of Circle | Radius=" +
+value1 +
+" → " +
+result.toFixed(2);
 
     }
 
     else if(shape === "Square"){
 
-        result = value1 * value1;
+       result = value1 * value1;
+
+historyText =
+"Area of Square | Side=" +
+value1 +
+" → " +
+result.toFixed(2);
 
     }
 
@@ -473,7 +515,16 @@ parseFloat(document.getElementById("value1").value);
 
 let width =
 parseFloat(document.getElementById("value2").value);
-        result = length * width;
+       
+result = length * width;
+
+historyText =
+"Area of Rectangle | Length=" +
+length +
+", Width=" +
+width +
+" → " +
+result.toFixed(2);
     }
 
     else if(shape === "Triangle"){
@@ -483,7 +534,15 @@ parseFloat(document.getElementById("value1").value);
 
 let height =
 parseFloat(document.getElementById("value2").value);
-        result = 0.5 * base * height;
+      result = 0.5 * base * height;
+
+historyText =
+"Area of Triangle | Base=" +
+base +
+", Height=" +
+height +
+" → " +
+result.toFixed(2);
     }
 
     else if(shape === "Parallelogram"){
@@ -493,7 +552,15 @@ parseFloat(document.getElementById("value1").value);
 
 let height =
 parseFloat(document.getElementById("value2").value);
-        result = base * height;
+      result = base * height;
+
+historyText =
+"Area of Parallelogram | Base=" +
+base +
+", Height=" +
+height +
+" → " +
+result.toFixed(2);
     }
 }
 else if(formula === "Volume"){
@@ -506,32 +573,63 @@ else if(formula === "Volume"){
 
     if(shape === "Cube"){
 
-        result = value1 * value1 * value1;
+       result = value1 * value1 * value1;
+
+historyText =
+"Volume of Cube | Side=" +
+value1 +
+" → " +
+result.toFixed(2);
     }
 
     else if(shape === "Cuboid"){
+   result = value1 * value2 * value3;
 
-        result = value1 * value2 * value3;
+historyText =
+"Volume of Cuboid | Length=" +
+value1 +
+", Width=" +
+value2 +
+", Height=" +
+value3 +
+" → " +
+result.toFixed(2);
     }
 
     else if(shape === "Cylinder"){
 
-        result =
-        Math.PI * value1 * value1 * value2;
+      result = Math.PI * value1 * value1 * value2;
+
+historyText =
+"Volume of Cylinder | Radius=" +
+value1 +
+", Height=" +
+value2 +
+" → " +
+result.toFixed(2);
     }
 
     else if(shape === "Cone"){
+result = (1/3) * Math.PI * value1 * value1 * value2;
 
-        result =
-        (1/3) * Math.PI *
-        value1 * value1 * value2;
+historyText =
+"Volume of Cone | Radius=" +
+value1 +
+", Height=" +
+value2 +
+" → " +
+result.toFixed(2);
     }
 
     else if(shape === "Sphere"){
 
-        result =
-        (4/3) * Math.PI *
-        value1 * value1 * value1;
+    result = (4/3) * Math.PI * value1 * value1 * value1;
+
+historyText =
+"Volume of Sphere | Radius=" +
+value1 +
+" → " +
+result.toFixed(2);
     }
 }
 else if(formula === "Perimeter"){
@@ -540,13 +638,26 @@ else if(formula === "Perimeter"){
     parseFloat(document.getElementById("value2").value);
 
     if(shape === "Square"){
+result = 4 * value1;
 
-        result = 4 * value1;
+historyText =
+"Perimeter of Square | Side=" +
+value1 +
+" → " +
+result.toFixed(2);
     }
 
     else if(shape === "Rectangle"){
 
-        result = 2 * (value1 + value2);
+       result = 2 * (value1 + value2);
+
+historyText =
+"Perimeter of Rectangle | Length=" +
+value1 +
+", Width=" +
+value2 +
+" → " +
+result.toFixed(2);
     }
 
     else if(shape === "Triangle"){
@@ -563,17 +674,36 @@ else if(formula === "Perimeter"){
     parseFloat(document.getElementById("value3").value);
 
     result = side1 + side2 + side3;
+    historyText =
+"Perimeter of Triangle | Sides=" +
+side1 + "," + side2 + "," + side3 +
+" → " +
+result.toFixed(2);
 }
     }
 
     else if(shape === "Circle"){
 
         result = 2 * Math.PI * value1;
+
+historyText =
+"Circumference of Circle | Radius=" +
+value1 +
+" → " +
+result.toFixed(2);
     }
 
     else if(shape === "Parallelogram"){
 
-        result = 2 * (value1 + value2);
+      result = 2 * (value1 + value2);
+
+historyText =
+"Perimeter of Parallelogram | Base=" +
+value1 +
+", Side=" +
+value2 +
+" → " +
+result.toFixed(2);
     }
 }
 else if(formula === "Speed"){
@@ -585,6 +715,13 @@ else if(formula === "Speed"){
     parseFloat(document.getElementById("value2").value);
 
     result = distance / time;
+    historyText =
+"Speed | Distance=" +
+distance +
+", Time=" +
+time +
+" → " +
+result.toFixed(2);
 }
 else if(formula === "Simple Interest"){
 
@@ -598,6 +735,15 @@ else if(formula === "Simple Interest"){
     parseFloat(document.getElementById("value3").value);
 
     result = (principal * rate * time) / 100;
+    historyText =
+"Simple Interest | P=" +
+principal +
+", R=" +
+rate +
+", T=" +
+time +
+" → " +
+result.toFixed(2);
 }
 else if(formula === "BMI"){
 
@@ -608,6 +754,13 @@ else if(formula === "BMI"){
     parseFloat(document.getElementById("value2").value);
 
     result = weight / (height * height);
+    historyText =
+"BMI | Weight=" +
+weight +
+", Height=" +
+height +
+" → " +
+result.toFixed(2);
 }
 else if(formula === "Percentage"){
 
@@ -618,6 +771,13 @@ else if(formula === "Percentage"){
     parseFloat(document.getElementById("value2").value);
 
     result = (obtained / total) * 100;
+    historyText =
+"Percentage | Marks=" +
+obtained +
+"/" +
+total +
+" → " +
+result.toFixed(2) + "%";
 }
 else if(formula === "Mean"){
 
@@ -633,6 +793,11 @@ else if(formula === "Mean"){
     }
 
     result = sum / numbers.length;
+    historyText =
+"Mean | Data=" +
+numbers.join(",") +
+" → " +
+result.toFixed(2);
 }
 else if(formula === "Median"){
 
@@ -655,6 +820,11 @@ else if(formula === "Median"){
 
         result = numbers[middle];
     }
+    historyText =
+"Median | Data=" +
+numbers.join(",") +
+" → " +
+result.toFixed(2);
 }
 else if(formula === "Mode"){
 
@@ -679,6 +849,11 @@ else if(formula === "Mode"){
     }
 
     result = mode;
+    historyText =
+"Mode | Data=" +
+numbers.join(",") +
+" → " +
+result;
 }
 else if(formula === "Variance"){
 
@@ -696,6 +871,11 @@ else if(formula === "Variance"){
     / numbers.length;
 
     result = variance;
+    historyText =
+"Variance | Data=" +
+numbers.join(",") +
+" → " +
+result.toFixed(2);
 }
 else if(formula === "Standard Deviation"){
 
@@ -713,6 +893,11 @@ else if(formula === "Standard Deviation"){
     / numbers.length;
 
     result = Math.sqrt(variance);
+    historyText =
+"Standard Deviation | Data=" +
+numbers.join(",") +
+" → " +
+result.toFixed(2);
 }
 else if(formula === "Z-Score"){
 
@@ -726,6 +911,15 @@ else if(formula === "Z-Score"){
     parseFloat(document.getElementById("value3").value);
 
     result = (x - mean) / stdDev;
+    historyText =
+"Z-Score | X=" +
+x +
+", Mean=" +
+mean +
+", SD=" +
+stdDev +
+" → " +
+result.toFixed(2);
 }
 else if(formula === "Covariance"){
 
@@ -755,9 +949,31 @@ else if(formula === "Covariance"){
     }
 
     result = sum / x.length;
+    historyText =
+"Covariance | X=" +
+x.join(",") +
+" | Y=" +
+y.join(",") +
+" → " +
+result.toFixed(2);
 }
 document.getElementById("result").innerText =
 result.toFixed(2);
+if(historyText !== ""){
+
+    historyList.push(historyText);
+
+}
+else{
+
+    historyList.push(
+        formula +
+        (shape ? " (" + shape + ")" : "") +
+        " = " +
+        result.toFixed(2)
+    );
+}
+saveHistory();
 }
 function convertCurrency(){
 
@@ -788,8 +1004,15 @@ else if(type === "GBP → INR"){
     result = amount * 115;
 }
 
-    document.getElementById("result").innerText =
-    result.toFixed(2);
+  document.getElementById("result").innerText =
+result.toFixed(2);
+
+historyList.push(
+    type + ": " +
+    amount + " = " +
+    result.toFixed(2)
+);
+saveHistory();
 }
 
 function convertBinary(){
@@ -823,6 +1046,179 @@ function convertBinary(){
     else if(type === "Hexadecimal → Decimal"){
         result = parseInt(value,16);
     }
+document.getElementById("result").innerText =
+result;
 
-    document.getElementById("result").innerText = result;
+historyList.push(
+    type + ": " +
+    value + " = " +
+    result
+);
+saveHistory();
 }
+
+function openHistory(){
+    document.getElementById("sideMenu").style.display="none"
+    document.getElementById("historyPage").style.display = "block";
+
+    let content =
+    document.getElementById("historyContent");
+
+    if(historyList.length === 0){
+
+        content.innerHTML = "No History Yet";
+    }
+    else{
+
+        content.innerHTML = historyList.join("<br>");
+    }
+}
+function closeHistory(){
+
+    document.getElementById("historyPage").style.display = "none";
+}
+
+// ================= SETTINGS =================
+
+// Open Settings Page
+function openSettings(){
+
+    document.getElementById("sideMenu").style.display = "none";
+
+    document.getElementById("settingsPage").style.display = "block";
+
+}
+
+
+// Close Settings Page
+function closeSettings(){
+
+    document.getElementById("settingsPage").style.display = "none";
+
+}
+
+
+// Theme Change
+
+function setTheme(mode){
+
+    if(mode === "dark"){
+
+        document.body.classList.add("dark-mode");
+
+        localStorage.setItem("theme","dark");
+
+    }
+
+    else{
+
+        document.body.classList.remove("dark-mode");
+
+        localStorage.setItem("theme","default");
+
+    }
+
+}
+
+
+// Load Saved Theme
+
+window.onload = function(){
+
+    let savedTheme = localStorage.getItem("theme");
+
+
+    if(savedTheme === "dark"){
+
+        document.body.classList.add("dark-mode");
+
+    }
+
+};
+function openSettings(){
+
+    document.getElementById("sideMenu").style.display="none";
+
+    document.getElementById("settingsMenu").style.display="block";
+
+}
+
+
+
+function toggleSetting(id){
+
+    let box=document.getElementById(id);
+
+
+    if(box.style.display==="block"){
+
+        box.style.display="none";
+
+    }
+
+    else{
+
+        box.style.display="block";
+
+    }
+
+}
+// Close menu/settings when clicking outside
+
+document.addEventListener("click", function(event){
+
+    const menu = document.getElementById("sideMenu");
+    const settings = document.getElementById("settingsMenu");
+    const menuButton = document.querySelector(".menu-btn");
+
+
+    if(
+        !menu.contains(event.target) &&
+        !settings.contains(event.target) &&
+        !menuButton.contains(event.target)
+    ){
+
+        menu.style.display = "none";
+
+        settings.style.display = "none";
+
+    }
+
+});
+function changeTheme(){
+
+    let theme =
+    document.getElementById("themeSelect").value;
+
+
+    if(theme === "dark"){
+
+        document.body.classList.add("dark-mode");
+
+        localStorage.setItem("theme","dark");
+
+    }
+
+    else{
+
+        document.body.classList.remove("dark-mode");
+
+        localStorage.setItem("theme","default");
+
+    }
+
+}
+window.onload = function(){
+
+    let savedTheme = localStorage.getItem("theme");
+
+
+    if(savedTheme === "dark"){
+
+        document.body.classList.add("dark-mode");
+
+        document.getElementById("themeSelect").value="dark";
+
+    }
+
+};
