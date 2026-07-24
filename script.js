@@ -186,6 +186,9 @@ formulaSelect.addEventListener("change", function(){
     if(formula === "Area"){
 
         shapeContainer.style.display = "block";
+        document.getElementById("shapeLabel").style.display = "block";
+shapeSelect.style.display = "block";
+
 
         shapeSelect.innerHTML = `
         <option selected disabled>Select Shape</option>
@@ -201,6 +204,8 @@ formulaSelect.addEventListener("change", function(){
     else if(formula === "Volume"){
 
     shapeContainer.style.display = "block";
+    document.getElementById("shapeLabel").style.display = "block";
+shapeSelect.style.display = "block";
 
     shapeSelect.innerHTML = `
     <option selected disabled>Select Shape</option>
@@ -217,6 +222,8 @@ formulaSelect.addEventListener("change", function(){
     else if(formula === "Perimeter"){
 
         shapeContainer.style.display = "block";
+        document.getElementById("shapeLabel").style.display = "block";
+shapeSelect.style.display = "block";
 
         shapeSelect.innerHTML = `
         <option selected disabled>Select Shape</option>
@@ -232,6 +239,7 @@ formulaSelect.addEventListener("change", function(){
         
     shapeContainer.style.display = "block";
      shapeSelect.style.display = "none";
+     document.getElementById("shapeLabel").style.display = "none";
 
     document.getElementById("formulaInputs").style.display = "block";
 
@@ -246,6 +254,7 @@ formulaSelect.addEventListener("change", function(){
 else if(formula === "Simple Interest"){
     shapeContainer.style.display="block"
     shapeSelect.style.display = "none";
+    document.getElementById("shapeLabel").style.display = "none";
 
     document.getElementById("formulaInputs").style.display = "block";
 
@@ -263,6 +272,7 @@ else if(formula === "BMI"){
 
     shapeContainer.style.display = "block";
     shapeSelect.style.display = "none";
+    document.getElementById("shapeLabel").style.display = "none";
 
     document.getElementById("formulaInputs").style.display = "block";
 
@@ -276,6 +286,7 @@ else if(formula === "Percentage"){
 
     shapeContainer.style.display = "block";
     shapeSelect.style.display = "none";
+    document.getElementById("shapeLabel").style.display = "none";
    
     document.getElementById("formulaInputs").style.display = "block";
 
@@ -296,7 +307,7 @@ else if(formula === "Percentage"){
 
     shapeContainer.style.display = "block";
     shapeSelect.style.display = "none";
-   
+    document.getElementById("shapeLabel").style.display = "none";
   
     document.getElementById("formulaInputs").style.display = "block";
 
@@ -311,6 +322,7 @@ else if(formula === "Variance"){
 
     shapeContainer.style.display = "block";
     shapeSelect.style.display = "none";
+    document.getElementById("shapeLabel").style.display = "none";
 
     document.getElementById("formulaInputs").style.display = "block";
 
@@ -324,6 +336,7 @@ else if(formula === "Standard Deviation"){
 
     shapeContainer.style.display = "block";
     shapeSelect.style.display = "none";
+    document.getElementById("shapeLabel").style.display = "none";
 
     document.getElementById("formulaInputs").style.display = "block";
 
@@ -337,6 +350,7 @@ else if(formula === "Z-Score"){
 
     shapeContainer.style.display = "block";
     shapeSelect.style.display = "none";
+    document.getElementById("shapeLabel").style.display = "none";
 
     document.getElementById("formulaInputs").style.display = "block";
 
@@ -351,6 +365,7 @@ else if(formula === "Covariance"){
 
     shapeContainer.style.display = "block";
     shapeSelect.style.display = "none";
+    document.getElementById("shapeLabel").style.display = "none";
 
     document.getElementById("formulaInputs").style.display = "block";
 
