@@ -1,11 +1,20 @@
 :root{
-    --bg-color: #eaffea;
-    --panel-color: #ffffff;
-    --text-color: #1a1a1a;
-    --button-color: #9be39b;
-    --border-color: #4caf50;
-}
 
+    --bg-color:#F1F8E9;
+
+    --panel-color:#FFFFFF;
+
+    --text-color:#1B381B;
+
+    --primary-green:#2E7D32;
+
+    --secondary-green:#A5D6A7;
+
+    --accent-green:#00E676;
+
+    --border-color:#388E3C;
+
+}
 
 .dark-mode{
 
@@ -23,14 +32,17 @@
 }
 
 body{
-    font-family: Arial, sans-serif;
+    font-family:Arial,sans-serif;
 
-    background: linear-gradient(
+    background:
+    linear-gradient(
         135deg,
-        #024e23,
-        #015539'
-        #680404
+        #eef8e9,
+        #f6fff2,
+        #ffffff
     );
+
+    min-height:100vh;
 
     padding:20px;
 }
@@ -45,21 +57,37 @@ body{
 }
 
 .left-panel{
-    flex:2.5;
-    min-width: 0;
-    border:2px solid #035402;
-    border-radius:15px;
+    flex:2.8;
+    min-width:0;
+
+    background:#FFFFFF;
+
+    border:2px solid #A5D6A7;
+
+    border-radius:20px;
+
+    padding:15px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.05);
 }
 .right-panel{
-     flex:1;
-    min-width: 220px;
-  
-    display:flex;
-    flex-direction:column;
-    gap:15px;
+    flex:1;
 
-    border:2px solid #02591c;
-    border-radius:15px;
+    min-width:250px;
+
+    background:#FFFFFF;
+
+    border:2px solid #A5D6A7;
+
+    border-radius:20px;
+
+    padding:15px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:15px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.05);
 }
 
 /* Sections */
@@ -70,9 +98,13 @@ body{
 .voice-section,
 .banner,
 .card{
-    background:white;
-    border:1px solid #55020d;
-    border-radius:15px;
+
+    background:#FFFFFF;
+
+    border:1px solid #DDEEDB;
+
+    border-radius:18px;
+
     padding:20px;
 }
 
@@ -98,7 +130,7 @@ body{
     align-items: center;
     justify-content: center;
     height: 60px;
-    border-bottom: 1px solid #50dc91;
+    border-bottom: 2px solid #dcedc8;
 }
 
 .menu-btn{
@@ -110,13 +142,7 @@ body{
     cursor: pointer;
 }
 
-/* .logo{
-    margin: 0;
-    font-size: 30px;
-    font-weight: bold;
-    color: #2196f3;
-    letter-spacing: 2px;
-} */
+
  .logo{
     margin:0;
 
@@ -126,7 +152,7 @@ body{
 
     letter-spacing:6px;
 
-    color:#045d05;
+    color:#2E7D32;
 
     text-shadow:
         0px 2px 8px rgba(2, 87, 70, 0.25);
@@ -142,6 +168,9 @@ body{
 
 .display-section{
     margin-top:20px;
+    background:#ffffff;
+
+border:2px solid #dcedc8;
 }
 
 .display-top{
@@ -165,8 +194,8 @@ body{
 
 .result{
     text-align:right;
-    font-size:30px;
-    color:#035706;
+    font-size:50px;
+    color:#2e7d32;
     font-weight:bold;
 }
 /* CALCULATOR BUTTONS */
@@ -179,15 +208,15 @@ body{
 }
 .button-grid button{
 
-    border:none;
+    border: 1px solid #dcedc8;
 
     padding:12px;
 
     border-radius:16px;
 
-    background:#e7ede6;
+   background:#f9fcf7;
 
-    color:#060606;
+    color:#2e7d32;
 
     font-size:14px;
 
@@ -196,18 +225,21 @@ body{
     cursor:pointer;
 
     transition:0.3s;
+    box-shadow:0 2px 4px rgba(0,0,0,0.05);
 
 
 }
-    .equal-btn{
-    background:#2be805  !important;
+  .equal-btn{
+
+    background:#66BB6A !important;
+
     color:white;
+
     font-weight:bold;
 }
 .ac-btn{
-    background:#2be805  !important;
+    background:#aed581 !important;
     color:white;
-    font-weight:bold;
 }
 
 .button-grid button:hover{
@@ -220,28 +252,13 @@ body{
 
 /* VOICE SECTION */
 
-
-
-
 .card{
-
-    background:rgb(54, 1, 1);
-
-    padding:18px;
-
-    border-radius:18px;
-
-    color:#6f0606;
-
-    font-weight:bold;
-
-    box-shadow:
-    0 5px 15px rgba(128, 3, 3, 0.05);
-
-    cursor:pointer;
-
-    transition:0.3s;
+    background:#ffffff;
+    border:1px solid #dcedc8;
+    color:#2E7D32;
+    border-radius:15px;
 }
+
 
 .card:hover{
 
@@ -250,40 +267,20 @@ body{
 }
 
 .banner{
-
-    text-align:center;
-
-    background:rgb(236, 12, 12);
-
+    background:#F8FFF5;
+    border:1px solid #DDEEDB;
     border-radius:20px;
-
     padding:20px;
 }
 
 .banner h2{
-    color:#dde9e5;
+    color:#2E7D32;
 }
 
 .banner-mic{
-
-    width:80px;
-    height:80px;
-
-    margin:15px auto;
-
-    border-radius:50%;
-
-    background:#e8450a;
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
-
-    color:rgb(238, 15, 15);
-    font-size:35px;
+    background:#81C784;
+    color:white;
 }
-
-
 
 
 .side-menu{
@@ -361,14 +358,14 @@ body{
     margin-top:8px;
     margin-bottom:20px;
 
-    border:2px solid #065002;
+    border:1px solid #DDEEDB;
     border-radius:10px;
 
-    background:rgb(241, 245, 241);
+    background:#ffffff;
 
     font-size:14px;
 
-    color:#027d13;
+    color:#2e7d32;
 
     cursor:pointer;
 }
@@ -526,7 +523,7 @@ body{
 }
 /* Dark Mode */
 
-.dark-mode body{
+body.dark-mode{
     background: #101820;
 }
 
@@ -544,19 +541,19 @@ body{
 
 
 /* Header */
-.dark-mode .header{
+body.dark-mode .header{
     background: #0f3d32;
 }
 
 
-.dark-mode .logo{
+body.dark-mode .logo{
     color: #7CFFB2;
 }
 
 
 /* Display Area */
 
-.dark-mode .display-section{
+body.dark-mode .display-section{
     background: #10241d;
     border: 1px solid #2ecc71;
 }
