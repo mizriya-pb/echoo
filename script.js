@@ -1222,3 +1222,9 @@ window.onload = function(){
     }
 
 };
+
+const VoiceBtn =document.getElementById("voiceBtn");
+const soundWave=document.querySelector(".sound-wave");
+VoiceBtn.addEventListener("Click",()=>{
+    soundWave.classList.toggle("active");
+});
