@@ -1,5 +1,19 @@
 // // console.log("Project Started");
 // console.log("Scientific Voice Calculator Started");
+let buttonSoundEnabled = true;
+
+const clickSound = new Audio("sounds/click.mp3");
+
+function playButtonSound(){
+
+    if(buttonSoundEnabled){
+
+        clickSound.currentTime = 0;
+        clickSound.play();
+    }
+}
+
+
 let expression = "";
 let historyList = [];
 function saveHistory(){
@@ -25,14 +39,14 @@ function loadHistory(){
 loadHistory();
 
 function appendValue(value) {
-
+    playButtonSound();
     expression += value;
 
     document.getElementById("expression").innerText = expression;
 }
 
 function calculateResult() {
-
+   playButtonSound();
     try {
 
         let answer = eval(expression);
@@ -49,7 +63,7 @@ saveHistory();
 }
 
 function clearDisplay() {
-
+    playButtonSound();
     expression = "";
 
     document.getElementById("expression").innerText = "";
@@ -58,7 +72,7 @@ function clearDisplay() {
 }
 
 function calculateScientific(type){
-
+    playButtonSound();
     let num = parseFloat(expression);
 
     if(isNaN(num)){
@@ -101,7 +115,7 @@ function calculateScientific(type){
 }
 
 function insertConstant(type){
-
+    playButtonSound();
     if(type === "pi"){
         expression = Math.PI.toString();
     }
@@ -114,7 +128,7 @@ function insertConstant(type){
 }
 
 function squareValue(){
-
+      playButtonSound();
     let num = parseFloat(expression);
 
     if(isNaN(num)){
@@ -130,7 +144,7 @@ function squareValue(){
 }
 
 function backspace(){
-
+    playButtonSound();
     expression = expression.slice(0, -1);
 
     document.getElementById("expression").innerText = expression;
@@ -1089,7 +1103,15 @@ function openSettings(){
 
 }
 
+function clearHistory(){
 
+    historyList = [];
+
+    localStorage.removeItem("echoHistory");
+
+    document.getElementById("historyContent").innerHTML =
+    "No History Yet";
+}
 // Close Settings Page
 function closeSettings(){
 
@@ -1228,3 +1250,27 @@ const soundWave=document.querySelector(".sound-wave");
 VoiceBtn.addEventListener("Click",()=>{
     soundWave.classList.toggle("active");
 });
+
+function showAbout(){
+
+    alert(
+`ECHOO Scientific Voice Calculator
+
+Developed By:
+
+Frontend:
+Nafeezathul Mizriya
+
+Backend:
+Amisha Shiju
+
+Features:
+• Scientific Calculator
+• Formula Hub
+• Currency Converter
+• Binary Converter
+• Voice Input System
+
+Version: 1.0`
+    );
+}
