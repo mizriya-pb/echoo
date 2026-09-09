@@ -1274,3 +1274,74 @@ Features:
 Version: 1.0`
     );
 }
+function startVoiceInput() {
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        alert("Voice recognition not supported");
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = "en-US";
+    recognition.start();
+
+    recognition.onresult = function(event) {
+
+        let speechText =
+            event.results[0][0].transcript;
+
+        document.getElementById("expression").innerText =
+            speechText;
+
+        expression = speechText;
+    };
+
+    recognition.onerror = function(event) {
+        console.log(event.error);
+    };
+}
+
+function processVoiceCommand(text){
+
+    text = text.replace(/plus/g,"+");
+    text = text.replace(/minus/g,"-");
+    text = text.replace(/times/g,"*");
+    text = text.replace(/multiplied by/g,"*");
+    text = text.replace(/divide by/g,"/");
+    text = text.replace(/divided by/g,"/");
+
+    text = text.replace(/one/g,"1");
+    text = text.replace(/two/g,"2");
+    text = text.replace(/three/g,"3");
+    text = text.replace(/four/g,"4");
+    text = text.replace(/five/g,"5");
+    text = text.replace(/six/g,"6");
+    text = text.replace(/seven/g,"7");
+    text = text.replace(/eight/g,"8");
+    text = text.replace(/nine/g,"9");
+    text = text.replace(/zero/g,"0");
+
+    document.getElementById("expression").innerText =
+    text;
+
+    try{
+
+        let answer = eval(text);
+
+        document.getElementById("result").innerText =
+        answer;
+
+    }
+
+    catch{
+
+        alert("Voice command not recognised");
+
+    }
+
+}
