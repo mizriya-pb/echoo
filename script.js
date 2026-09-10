@@ -1281,36 +1281,46 @@ function startVoiceInput() {
         window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-        alert("Voice recognition not supported");
+        alert("Voice Recognition not supported");
         return;
     }
 
     const recognition = new SpeechRecognition();
 
     recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
     recognition.start();
 
     recognition.onresult = function(event) {
 
         let speechText =
-            event.results[0][0].transcript;
+            event.results[0][0].transcript.toLowerCase();
 
-        document.getElementById("expression").innerText =
-            speechText;
+        processVoiceCommand(speechText);
 
-        expression = speechText;
     };
 
     recognition.onerror = function(event) {
-        console.log(event.error);
+
+        console.log(
+            "Voice Error:",
+            event.error
+        );
+
     };
+
 }
 
 function processVoiceCommand(text){
 
+    text = text.toLowerCase();
+
     text = text.replace(/plus/g,"+");
     text = text.replace(/minus/g,"-");
     text = text.replace(/times/g,"*");
+    text = text.replace(/into/g,"*");
     text = text.replace(/multiplied by/g,"*");
     text = text.replace(/divide by/g,"/");
     text = text.replace(/divided by/g,"/");
@@ -1327,20 +1337,28 @@ function processVoiceCommand(text){
     text = text.replace(/zero/g,"0");
 
     document.getElementById("expression").innerText =
-    text;
+        text;
 
     try{
 
         let answer = eval(text);
 
         document.getElementById("result").innerText =
-        answer;
+            answer;
+
+        let speech =
+            new SpeechSynthesisUtterance(
+                "The answer is " + answer
+            );
+
+        speechSynthesis.speak(speech);
 
     }
 
     catch{
 
-        alert("Voice command not recognised");
+        document.getElementById("result").innerText =
+            "Error";
 
     }
 
