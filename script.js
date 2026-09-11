@@ -1354,23 +1354,21 @@ function startVoiceInput() {
     };
 
 }
-
 function processVoiceCommand(text){
 
     text = text.toLowerCase();
 
-    text=text.replace("calculate","");
-    text=text.replace("what is","");
-    text=text.replace("solve","");
- text = text.replace(/plus/g,"+");
+    text = text.replace("calculate","");
+    text = text.replace("what is","");
+    text = text.replace("solve","");
+
+    text = text.replace(/plus/g,"+");
     text = text.replace(/minus/g,"-");
     text = text.replace(/times/g,"*");
     text = text.replace(/into/g,"*");
     text = text.replace(/multiplied by/g,"*");
     text = text.replace(/divide by/g,"/");
     text = text.replace(/divided by/g,"/");
-    text=text.replace(/point/g,".");
-    text=text.replace(/power/g,"**");
 
     text = text.replace(/one/g,"1");
     text = text.replace(/two/g,"2");
@@ -1383,135 +1381,481 @@ function processVoiceCommand(text){
     text = text.replace(/nine/g,"9");
     text = text.replace(/zero/g,"0");
 
-    document.getElementById("expression").innerText =
-        text;
-    if(text.includes("sin")){
-    let num = parseFloat(text.replace("sin",""));
-    let answer = Math.sin(num * Math.PI / 180);
+    text = text.trim();
 
-    document.getElementById("expression").innerText =
-    "sin(" + num + ")";
+    document.getElementById("expression").innerText = text;
 
-    document.getElementById("result").innerText =
-    answer.toFixed(4);
+    // ================= ADVANCED =================
 
-    return;
-}
+    if(text.includes("square of")){
 
-if(text.includes("cos")){
-    let num = parseFloat(text.replace("cos",""));
-    let answer = Math.cos(num * Math.PI / 180);
+        let num = parseFloat(text.match(/\d+/)?.[0]);
 
-    document.getElementById("expression").innerText =
-    "cos(" + num + ")";
+        if(!isNaN(num)){
 
-    document.getElementById("result").innerText =
-    answer.toFixed(4);
+            let answer = num * num;
 
-    return;
-}
+            document.getElementById("result").innerText =
+            answer;
 
-if(text.includes("tan")){
-    let num = parseFloat(text.replace("tan",""));
-    let answer = Math.tan(num * Math.PI / 180);
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "The answer is " + answer));
 
-    document.getElementById("expression").innerText =
-    "tan(" + num + ")";
+            return;
+        }
+    }
 
-    document.getElementById("result").innerText =
-    answer.toFixed(4);
+    if(text.includes("cube of")){
 
-    return;
-}
-if(text.includes("log")){
+        let num = parseFloat(text.match(/\d+/)?.[0]);
 
-    let num = parseFloat(
-        text.replace("log","")
-    );
+        if(!isNaN(num)){
 
-    let answer = Math.log10(num);
+            let answer = num * num * num;
 
-    document.getElementById("expression").innerText =
-    "log(" + num + ")";
+            document.getElementById("result").innerText =
+            answer;
 
-    document.getElementById("result").innerText =
-    answer.toFixed(4);
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "The answer is " + answer));
 
-    return;
-}
-if(text.includes("ln")){
+            return;
+        }
+    }
 
-    let num = parseFloat(
-        text.replace("ln","")
-    );
+    if(text.includes("factorial")){
 
-    let answer = Math.log(num);
+        let num = parseInt(text.match(/\d+/)?.[0]);
 
-    document.getElementById("expression").innerText =
-    "ln(" + num + ")";
+        if(!isNaN(num)){
 
-    document.getElementById("result").innerText =
-    answer.toFixed(4);
+            let answer = 1;
 
-    return;
-}
-if(text.includes("sqrt")){
+            for(let i=1;i<=num;i++){
+                answer *= i;
+            }
 
-    let num = parseFloat(
-        text.replace("sqrt","")
-    );
+            document.getElementById("result").innerText =
+            answer;
 
-    let answer = Math.sqrt(num);
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "The answer is " + answer));
 
-    document.getElementById("expression").innerText =
-    "√(" + num + ")";
+            return;
+        }
+    }
 
-    document.getElementById("result").innerText =
-    answer.toFixed(4);
+    if(text.includes("power")){
 
-    return;
-}
-if(text === "pi"){
+        let nums = text.match(/\d+/g);
 
-    document.getElementById("expression").innerText =
-    "π";
+        if(nums && nums.length >= 2){
 
-    document.getElementById("result").innerText =
-    Math.PI.toFixed(6);
+            let base = parseFloat(nums[0]);
+            let exponent = parseFloat(nums[1]);
 
-    return;
-}
-if(text === "e"){
+            let answer =
+            Math.pow(base, exponent);
 
-    document.getElementById("expression").innerText =
-    "e";
+            document.getElementById("result").innerText =
+            answer;
 
-    document.getElementById("result").innerText =
-    Math.E.toFixed(6);
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "The answer is " + answer));
 
-    return;
-}
+            return;
+        }
+    }
+
+    // ================= SCIENTIFIC =================
+
+    if(text.startsWith("sin")){
+
+        let num =
+        parseFloat(text.replace("sin","").trim());
+
+        let answer =
+        Math.sin(num * Math.PI / 180);
+
+        document.getElementById("result").innerText =
+        answer.toFixed(4);
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer.toFixed(4)));
+
+        return;
+    }
+
+    if(text.startsWith("cos")){
+
+        let num =
+        parseFloat(text.replace("cos","").trim());
+
+        let answer =
+        Math.cos(num * Math.PI / 180);
+
+        document.getElementById("result").innerText =
+        answer.toFixed(4);
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer.toFixed(4)));
+
+        return;
+    }
+
+    if(text.startsWith("tan")){
+
+        let num =
+        parseFloat(text.replace("tan","").trim());
+
+        let answer =
+        Math.tan(num * Math.PI / 180);
+
+        document.getElementById("result").innerText =
+        answer.toFixed(4);
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer.toFixed(4)));
+
+        return;
+    }
+
+    if(text.startsWith("log")){
+
+        let num =
+        parseFloat(text.replace("log","").trim());
+
+        let answer =
+        Math.log10(num);
+
+        document.getElementById("result").innerText =
+        answer.toFixed(4);
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer.toFixed(4)));
+
+        return;
+    }
+
+    if(text.startsWith("ln")){
+
+        let num =
+        parseFloat(text.replace("ln","").trim());
+
+        let answer =
+        Math.log(num);
+
+        document.getElementById("result").innerText =
+        answer.toFixed(4);
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer.toFixed(4)));
+
+        return;
+    }
+
+    if(text.startsWith("sqrt")){
+
+        let num =
+        parseFloat(text.replace("sqrt","").trim());
+
+        let answer =
+        Math.sqrt(num);
+
+        document.getElementById("result").innerText =
+        answer.toFixed(4);
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer.toFixed(4)));
+
+        return;
+    }
+
+    // ================= AREA =================
+
+    if(text.includes("area of circle")){
+
+        let r = parseFloat(text.match(/\d+/)?.[0]);
+
+        let answer =
+        Math.PI * r * r;
+
+        document.getElementById("result").innerText =
+        answer.toFixed(2);
+
+        return;
+    }
+
+    if(text.includes("area of rectangle")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums && nums.length >= 2){
+
+            let answer =
+            parseFloat(nums[0]) *
+            parseFloat(nums[1]);
+
+            document.getElementById("result").innerText =
+            answer.toFixed(2);
+
+            return;
+        }
+    }
+
+    if(text.includes("area of square")){
+
+        let side =
+        parseFloat(text.match(/\d+/)?.[0]);
+
+        let answer =
+        side * side;
+
+        document.getElementById("result").innerText =
+        answer.toFixed(2);
+
+        return;
+    }
+
+    if(text.includes("area of triangle")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums && nums.length >= 2){
+
+            let answer =
+            0.5 *
+            parseFloat(nums[0]) *
+            parseFloat(nums[1]);
+
+            document.getElementById("result").innerText =
+            answer.toFixed(2);
+
+            return;
+        }
+    }
+
+    if(text.includes("area of parallelogram")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums && nums.length >= 2){
+
+            let answer =
+            parseFloat(nums[0]) *
+            parseFloat(nums[1]);
+
+            document.getElementById("result").innerText =
+            answer.toFixed(2);
+
+            return;
+        }
+    }
+
+    // ===== PART 2 CONTINUES BELOW =====
+        // ================= NORMAL CALCULATOR =================
+
+    // ================= CURRENCY =================
+
+    // Dollar → Rupee
+    if(text.includes("dollar") && text.includes("rupee")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums){
+
+            let usd = parseFloat(nums[0]);
+            let answer = usd * 88;
+
+            document.getElementById("result").innerText =
+            "₹" + answer.toFixed(2);
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            answer.toFixed(2) + " rupees"
+            ));
+
+            return;
+        }
+    }
+
+    // Rupee → Dollar
+    if(text.includes("rupee") && text.includes("dollar")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums){
+
+            let inr = parseFloat(nums[0]);
+            let answer = inr / 88;
+
+            document.getElementById("result").innerText =
+            "$" + answer.toFixed(2);
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            answer.toFixed(2) + " dollars"
+            ));
+
+            return;
+        }
+    }
+
+    // ================= BINARY =================
+
+    if(text.includes("binary")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums){
+
+            let decimal = parseInt(nums[0]);
+
+            let answer = decimal.toString(2);
+
+            document.getElementById("result").innerText =
+            answer;
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "Binary value is " + answer
+            ));
+
+            return;
+        }
+    }
+
+    if(text.includes("decimal")){
+
+        let binary = text.match(/[01]+/);
+
+        if(binary){
+
+            let answer =
+            parseInt(binary[0],2);
+
+            document.getElementById("result").innerText =
+            answer;
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "Decimal value is " + answer
+            ));
+
+            return;
+        }
+    }
+
+    // ================= HISTORY =================
+
+    if(text.includes("show history")){
+
+        openHistory();
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "Opening history"
+        ));
+
+        return;
+    }
+
+    if(text.includes("clear history")){
+
+        clearHistory();
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "History cleared"
+        ));
+
+        return;
+    }
+
+    // ================= SETTINGS =================
+
+    if(text.includes("open settings")){
+
+        openSettings();
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "Opening settings"
+        ));
+
+        return;
+    }
+
+    // ================= ABOUT =================
+
+    if(text.includes("show about")){
+
+        showAbout();
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "Opening about section"
+        ));
+
+        return;
+    }
+
+    // ================= THEME =================
+
+    if(text.includes("dark mode")){
+
+        document.body.classList.add("dark-mode");
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "Dark mode enabled"
+        ));
+
+        return;
+    }
+
+    if(text.includes("light mode")){
+
+        document.body.classList.remove("dark-mode");
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "Light mode enabled"
+        ));
+
+        return;
+    }
+
+    // ================= BASIC CALCULATOR =================
 
     try{
 
         let answer = eval(text);
 
         document.getElementById("result").innerText =
-            answer;
+        answer;
 
-        let speech =
-            new SpeechSynthesisUtterance(
-                "The answer is " + answer
-            );
-
-        speechSynthesis.speak(speech);
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer
+        ));
 
     }
 
     catch{
 
         document.getElementById("result").innerText =
-            "Error";
+        "Error";
 
     }
 
