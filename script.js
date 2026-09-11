@@ -69,6 +69,48 @@ function clearDisplay() {
     document.getElementById("expression").innerText = "";
 
     document.getElementById("result").innerText = "0";
+
+    //  Reset Everthing
+
+    document.getElementById("formulaSelect").selectedIndex=0;
+    let shapeContainer=document.getElementById("shapeContainer");
+    if(shapeContainer){
+        shapeContainer.style.display="none";
+    }
+    document.getElementById("shapeSelect").selectedIndex=0;
+    let value1=document.getElementById("value1");
+    if(value1)
+        value1.value="";
+    let value2=document.getElementById("value2");
+    if(value2){
+        value2.value="";
+        value2.style.display="none";
+    }
+        let value3=document.getElementById("value3");
+    if(value3){
+        value3.value="";
+        value3.style.display="none";
+    }
+ 
+  document.getElementById("currencySelect").selectedIndex=0;
+  let currencyInputs=document.getElementById("currencyInputs");
+  if(currencyInputs){
+    currencyInputs.style.display="none";
+  }
+  let currencyAmount=document.getElementById("currencyAmount");
+  if(currencyAmount){
+    currencyAmount.value="";
+  }
+
+    document.getElementById("binarySelect").selectedIndex=0;
+    let binaryInputs=document.getElementById("binaryInputs");
+    if(binaryInputs){
+        binaryInputs.style.display="none";
+    }
+    let binaryValue=document.getElementById("binaryValue");
+    if(binaryValue){
+        binaryValue.value="";
+    }
 }
 
 function calculateScientific(type){
@@ -1317,13 +1359,18 @@ function processVoiceCommand(text){
 
     text = text.toLowerCase();
 
-    text = text.replace(/plus/g,"+");
+    text=text.replace("calculate","");
+    text=text.replace("what is","");
+    text=text.replace("solve","");
+ text = text.replace(/plus/g,"+");
     text = text.replace(/minus/g,"-");
     text = text.replace(/times/g,"*");
     text = text.replace(/into/g,"*");
     text = text.replace(/multiplied by/g,"*");
     text = text.replace(/divide by/g,"/");
     text = text.replace(/divided by/g,"/");
+    text=text.replace(/point/g,".");
+    text=text.replace(/power/g,"**");
 
     text = text.replace(/one/g,"1");
     text = text.replace(/two/g,"2");
@@ -1338,6 +1385,112 @@ function processVoiceCommand(text){
 
     document.getElementById("expression").innerText =
         text;
+    if(text.includes("sin")){
+    let num = parseFloat(text.replace("sin",""));
+    let answer = Math.sin(num * Math.PI / 180);
+
+    document.getElementById("expression").innerText =
+    "sin(" + num + ")";
+
+    document.getElementById("result").innerText =
+    answer.toFixed(4);
+
+    return;
+}
+
+if(text.includes("cos")){
+    let num = parseFloat(text.replace("cos",""));
+    let answer = Math.cos(num * Math.PI / 180);
+
+    document.getElementById("expression").innerText =
+    "cos(" + num + ")";
+
+    document.getElementById("result").innerText =
+    answer.toFixed(4);
+
+    return;
+}
+
+if(text.includes("tan")){
+    let num = parseFloat(text.replace("tan",""));
+    let answer = Math.tan(num * Math.PI / 180);
+
+    document.getElementById("expression").innerText =
+    "tan(" + num + ")";
+
+    document.getElementById("result").innerText =
+    answer.toFixed(4);
+
+    return;
+}
+if(text.includes("log")){
+
+    let num = parseFloat(
+        text.replace("log","")
+    );
+
+    let answer = Math.log10(num);
+
+    document.getElementById("expression").innerText =
+    "log(" + num + ")";
+
+    document.getElementById("result").innerText =
+    answer.toFixed(4);
+
+    return;
+}
+if(text.includes("ln")){
+
+    let num = parseFloat(
+        text.replace("ln","")
+    );
+
+    let answer = Math.log(num);
+
+    document.getElementById("expression").innerText =
+    "ln(" + num + ")";
+
+    document.getElementById("result").innerText =
+    answer.toFixed(4);
+
+    return;
+}
+if(text.includes("sqrt")){
+
+    let num = parseFloat(
+        text.replace("sqrt","")
+    );
+
+    let answer = Math.sqrt(num);
+
+    document.getElementById("expression").innerText =
+    "√(" + num + ")";
+
+    document.getElementById("result").innerText =
+    answer.toFixed(4);
+
+    return;
+}
+if(text === "pi"){
+
+    document.getElementById("expression").innerText =
+    "π";
+
+    document.getElementById("result").innerText =
+    Math.PI.toFixed(6);
+
+    return;
+}
+if(text === "e"){
+
+    document.getElementById("expression").innerText =
+    "e";
+
+    document.getElementById("result").innerText =
+    Math.E.toFixed(6);
+
+    return;
+}
 
     try{
 
