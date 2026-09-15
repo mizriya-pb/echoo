@@ -1357,21 +1357,16 @@ function startVoiceInput() {
 
 function processVoiceCommand(text){
 
-    text = text.toLowerCase();
+    text = text.toLowerCase().trim();
 
-    text=text.replace("calculate","");
-    text=text.replace("what is","");
-    text=text.replace("solve","");
- text = text.replace(/plus/g,"+");
-    text = text.replace(/minus/g,"-");
-    text = text.replace(/times/g,"*");
-    text = text.replace(/into/g,"*");
-    text = text.replace(/multiplied by/g,"*");
-    text = text.replace(/divide by/g,"/");
-    text = text.replace(/divided by/g,"/");
-    text=text.replace(/point/g,".");
-    text=text.replace(/power/g,"**");
+    // Remove helper words
+    text = text.replace("calculate","");
+    text = text.replace("what is","");
+    text = text.replace("solve","");
+    text = text.trim();
 
+    // Number words
+    text = text.replace(/zero/g,"0");
     text = text.replace(/one/g,"1");
     text = text.replace(/two/g,"2");
     text = text.replace(/three/g,"3");
@@ -1381,137 +1376,615 @@ function processVoiceCommand(text){
     text = text.replace(/seven/g,"7");
     text = text.replace(/eight/g,"8");
     text = text.replace(/nine/g,"9");
-    text = text.replace(/zero/g,"0");
+    text = text.replace(/ten/g,"10");
 
-    document.getElementById("expression").innerText =
-        text;
-    if(text.includes("sin")){
-    let num = parseFloat(text.replace("sin",""));
-    let answer = Math.sin(num * Math.PI / 180);
+    // Operators
+    text = text.replace(/plus/g,"+");
+    text = text.replace(/minus/g,"-");
+    text = text.replace(/times/g,"*");
+    text = text.replace(/into/g,"*");
+    text = text.replace(/multiplied by/g,"*");
+    text = text.replace(/divide by/g,"/");
+    text = text.replace(/divided by/g,"/");
 
-    document.getElementById("expression").innerText =
-    "sin(" + num + ")";
+    // =====================================
+    // SCIENTIFIC FUNCTIONS
+    // =====================================
 
-    document.getElementById("result").innerText =
-    answer.toFixed(4);
+    if(text.startsWith("sin")){
 
-    return;
-}
+        let num = parseFloat(text.replace("sin","").trim());
 
-if(text.includes("cos")){
-    let num = parseFloat(text.replace("cos",""));
-    let answer = Math.cos(num * Math.PI / 180);
+        let answer = Math.sin(num * Math.PI / 180);
 
-    document.getElementById("expression").innerText =
-    "cos(" + num + ")";
+        document.getElementById("expression").innerText =
+        "sin(" + num + ")";
 
-    document.getElementById("result").innerText =
-    answer.toFixed(4);
+        document.getElementById("result").innerText =
+        answer.toFixed(4);
 
-    return;
-}
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer.toFixed(4)));
 
-if(text.includes("tan")){
-    let num = parseFloat(text.replace("tan",""));
-    let answer = Math.tan(num * Math.PI / 180);
+        return;
+    }
 
-    document.getElementById("expression").innerText =
-    "tan(" + num + ")";
+    if(text.startsWith("cos")){
 
-    document.getElementById("result").innerText =
-    answer.toFixed(4);
+        let num = parseFloat(text.replace("cos","").trim());
 
-    return;
-}
-if(text.includes("log")){
+        let answer = Math.cos(num * Math.PI / 180);
 
-    let num = parseFloat(
-        text.replace("log","")
-    );
+        document.getElementById("expression").innerText =
+        "cos(" + num + ")";
 
-    let answer = Math.log10(num);
+        document.getElementById("result").innerText =
+        answer.toFixed(4);
 
-    document.getElementById("expression").innerText =
-    "log(" + num + ")";
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer.toFixed(4)));
 
-    document.getElementById("result").innerText =
-    answer.toFixed(4);
+        return;
+    }
 
-    return;
-}
-if(text.includes("ln")){
+    if(text.startsWith("tan")){
 
-    let num = parseFloat(
-        text.replace("ln","")
-    );
+        let num = parseFloat(text.replace("tan","").trim());
 
-    let answer = Math.log(num);
+        let answer = Math.tan(num * Math.PI / 180);
 
-    document.getElementById("expression").innerText =
-    "ln(" + num + ")";
+        document.getElementById("expression").innerText =
+        "tan(" + num + ")";
 
-    document.getElementById("result").innerText =
-    answer.toFixed(4);
+        document.getElementById("result").innerText =
+        answer.toFixed(4);
 
-    return;
-}
-if(text.includes("sqrt")){
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer.toFixed(4)));
 
-    let num = parseFloat(
-        text.replace("sqrt","")
-    );
+        return;
+    }
 
-    let answer = Math.sqrt(num);
+    if(text.startsWith("log")){
 
-    document.getElementById("expression").innerText =
-    "√(" + num + ")";
+        let num = parseFloat(text.replace("log","").trim());
 
-    document.getElementById("result").innerText =
-    answer.toFixed(4);
+        let answer = Math.log10(num);
 
-    return;
-}
-if(text === "pi"){
+        document.getElementById("expression").innerText =
+        "log(" + num + ")";
 
-    document.getElementById("expression").innerText =
-    "π";
+        document.getElementById("result").innerText =
+        answer.toFixed(4);
 
-    document.getElementById("result").innerText =
-    Math.PI.toFixed(6);
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer.toFixed(4)));
 
-    return;
-}
-if(text === "e"){
+        return;
+    }
 
-    document.getElementById("expression").innerText =
-    "e";
+    if(text.startsWith("ln")){
 
-    document.getElementById("result").innerText =
-    Math.E.toFixed(6);
+        let num = parseFloat(text.replace("ln","").trim());
 
-    return;
-}
+        let answer = Math.log(num);
+
+        document.getElementById("expression").innerText =
+        "ln(" + num + ")";
+
+        document.getElementById("result").innerText =
+        answer.toFixed(4);
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer.toFixed(4)));
+
+        return;
+    }
+
+    if(text.startsWith("sqrt")){
+
+        let num = parseFloat(text.replace("sqrt","").trim());
+
+        let answer = Math.sqrt(num);
+
+        document.getElementById("expression").innerText =
+        "√(" + num + ")";
+
+        document.getElementById("result").innerText =
+        answer.toFixed(4);
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer.toFixed(4)));
+
+        return;
+    }
+
+    // =====================================
+    // AREA OF CIRCLE
+    // =====================================
+
+    if(text.includes("area of circle")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums){
+
+            let r = parseFloat(nums[0]);
+
+            let answer = Math.PI * r * r;
+
+            document.getElementById("expression").innerText =
+            "";
+
+            document.getElementById("result").innerText =
+            answer.toFixed(2);
+
+            document.getElementById("formulaSelect").value =
+            "Area";
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "The area of circle is " +
+            answer.toFixed(2)));
+
+            return;
+        }
+    }
+
+    // =====================================
+    // AREA OF RECTANGLE
+    // =====================================
+
+    if(text.includes("area of rectangle")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums && nums.length >= 2){
+
+            let length = parseFloat(nums[0]);
+
+            let width = parseFloat(nums[1]);
+
+            let answer = length * width;
+
+            document.getElementById("expression").innerText =
+            "";
+
+            document.getElementById("result").innerText =
+            answer.toFixed(2);
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "The area of rectangle is " +
+            answer.toFixed(2)));
+
+            return;
+        }
+    }
+
+    // =====================================
+    // AREA OF SQUARE
+    // =====================================
+
+    if(text.includes("area of square")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums){
+
+            let side = parseFloat(nums[0]);
+
+            let answer = side * side;
+
+            document.getElementById("expression").innerText =
+            "";
+
+            document.getElementById("result").innerText =
+            answer.toFixed(2);
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "The area of square is " +
+            answer.toFixed(2)));
+
+            return;
+        }
+    }
+
+    // =====================================
+    // AREA OF TRIANGLE
+    // =====================================
+
+    if(text.includes("area of triangle")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums && nums.length >= 2){
+
+            let base = parseFloat(nums[0]);
+
+            let height = parseFloat(nums[1]);
+
+            let answer = 0.5 * base * height;
+
+            document.getElementById("expression").innerText =
+            "";
+
+            document.getElementById("result").innerText =
+            answer.toFixed(2);
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "The area of triangle is " +
+            answer.toFixed(2)));
+
+            return;
+        }
+    }
+
+    // =====================================
+    // VOLUME OF CUBE
+    // =====================================
+
+    if(text.includes("volume of cube")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums){
+
+            let side = parseFloat(nums[0]);
+
+            let answer = side * side * side;
+
+            document.getElementById("expression").innerText =
+            "";
+
+            document.getElementById("result").innerText =
+            answer.toFixed(2);
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "The volume of cube is " +
+            answer.toFixed(2)));
+
+            return;
+        }
+    }
+
+    // =====================================
+    // VOLUME OF SPHERE
+    // =====================================
+
+    if(text.includes("volume of sphere")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums){
+
+            let r = parseFloat(nums[0]);
+
+            let answer =
+            (4/3) * Math.PI * r * r * r;
+
+            document.getElementById("expression").innerText =
+            "";
+
+            document.getElementById("result").innerText =
+            answer.toFixed(2);
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "The volume of sphere is " +
+            answer.toFixed(2)));
+
+            return;
+        }
+    }
+
+    // =====================================
+    // PERCENTAGE
+    // =====================================
+
+    if(text.includes("percentage")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums && nums.length >= 2){
+
+            let obtained = parseFloat(nums[0]);
+
+            let total = parseFloat(nums[1]);
+
+            let answer =
+            (obtained / total) * 100;
+
+            document.getElementById("expression").innerText =
+            "";
+
+            document.getElementById("result").innerText =
+            answer.toFixed(2) + "%";
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "The percentage is " +
+            answer.toFixed(2) +
+            " percent"));
+
+            return;
+        }
+    }
+
+    // =====================================
+    // BMI
+    // =====================================
+
+    if(text.includes("bmi")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums && nums.length >= 2){
+
+            let weight = parseFloat(nums[0]);
+
+            let height = parseFloat(nums[1]);
+
+            let answer =
+            weight /
+            ((height/100)*(height/100));
+
+            document.getElementById("expression").innerText =
+            "";
+
+            document.getElementById("result").innerText =
+            answer.toFixed(2);
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "Your BMI is " +
+            answer.toFixed(2)));
+
+            return;
+        }
+    }
+
+    // =====================================
+    // SIMPLE INTEREST
+    // =====================================
+
+    if(text.includes("simple interest")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums && nums.length >= 3){
+
+            let p = parseFloat(nums[0]);
+
+            let r = parseFloat(nums[1]);
+
+            let t = parseFloat(nums[2]);
+
+            let answer =
+            (p * r * t) / 100;
+
+            document.getElementById("expression").innerText =
+            "";
+
+            document.getElementById("result").innerText =
+            answer.toFixed(2);
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "The simple interest is " +
+            answer.toFixed(2)));
+
+            return;
+        }
+    }
+        // =====================================
+    // CURRENCY CONVERTER
+    // =====================================
+
+    if(text.includes("dollar") && text.includes("rupee")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums){
+
+            let usd = parseFloat(nums[0]);
+
+            let answer = usd * 88;
+
+            document.getElementById("expression").innerText = "";
+
+            document.getElementById("result").innerText =
+            "₹" + answer.toFixed(2);
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            answer.toFixed(2) + " rupees"));
+
+            return;
+        }
+    }
+
+    if(text.includes("rupee") && text.includes("dollar")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums){
+
+            let inr = parseFloat(nums[0]);
+
+            let answer = inr / 88;
+
+            document.getElementById("expression").innerText = "";
+
+            document.getElementById("result").innerText =
+            "$" + answer.toFixed(2);
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            answer.toFixed(2) + " dollars"));
+
+            return;
+        }
+    }
+
+    // =====================================
+    // BINARY CONVERTER
+    // =====================================
+
+    if(text.includes("binary of")){
+
+        let nums = text.match(/\d+/g);
+
+        if(nums){
+
+            let decimal = parseInt(nums[0]);
+
+            let answer = decimal.toString(2);
+
+            document.getElementById("expression").innerText = "";
+
+            document.getElementById("result").innerText =
+            answer;
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "Binary value is " + answer));
+
+            return;
+        }
+    }
+
+    if(text.includes("decimal of")){
+
+        let binary = text.match(/[01]+/);
+
+        if(binary){
+
+            let answer =
+            parseInt(binary[0],2);
+
+            document.getElementById("expression").innerText = "";
+
+            document.getElementById("result").innerText =
+            answer;
+
+            speechSynthesis.speak(
+            new SpeechSynthesisUtterance(
+            "Decimal value is " + answer));
+
+            return;
+        }
+    }
+
+    // =====================================
+    // HISTORY
+    // =====================================
+
+    if(text.includes("open history")){
+
+        openHistory();
+        return;
+    }
+
+    if(text.includes("show history")){
+
+        openHistory();
+        return;
+    }
+
+    if(text.includes("close history")){
+
+        closeHistory();
+        return;
+    }
+
+    if(text.includes("clear history")){
+
+        clearHistory();
+        return;
+    }
+
+    // =====================================
+    // SETTINGS
+    // =====================================
+
+    if(text.includes("open settings")){
+
+        openSettings();
+        return;
+    }
+
+    // =====================================
+    // DARK MODE
+    // =====================================
+
+    if(
+        text.includes("dark mode") ||
+        text.includes("switch to dark mode") ||
+        text.includes("change to dark mode")
+    ){
+
+        document.body.classList.add("dark-mode");
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "Dark mode enabled"));
+
+        return;
+    }
+
+    // =====================================
+    // LIGHT MODE
+    // =====================================
+
+    if(
+        text.includes("light mode") ||
+        text.includes("switch to light mode") ||
+        text.includes("change to light mode")
+    ){
+
+        document.body.classList.remove("dark-mode");
+
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "Light mode enabled"));
+
+        return;
+    }
+
+    // =====================================
+    // NORMAL CALCULATOR
+    // =====================================
 
     try{
 
         let answer = eval(text);
 
+        document.getElementById("expression").innerText =
+        text;
+
         document.getElementById("result").innerText =
-            answer;
+        answer;
 
-        let speech =
-            new SpeechSynthesisUtterance(
-                "The answer is " + answer
-            );
-
-        speechSynthesis.speak(speech);
+        speechSynthesis.speak(
+        new SpeechSynthesisUtterance(
+        "The answer is " + answer));
 
     }
 
     catch{
 
         document.getElementById("result").innerText =
-            "Error";
+        "Error";
 
     }
 
