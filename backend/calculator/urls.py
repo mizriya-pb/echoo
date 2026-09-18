@@ -6,6 +6,5 @@ urlpatterns = [
     path('api/calculate/', views.calculate),
     path('api/binary/', views.binary_convert),
     path('api/formula/', views.formula_calculate),
-    path('api/matrix/', views.matrix_calculate),
     path('api/currency/', views.currency_convert),
 ]
