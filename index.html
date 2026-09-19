@@ -29,15 +29,15 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
          <div id="sideMenu" class="side-menu">
 
     <div class="menu-item" onclick="openHistory()">
-        🕒 History
+        History
     </div>
 
     <div class="menu-item" onclick="openSettings()">
-        ⚙ Settings
+         Settings
     </div>
 
     <div class="menu-item" onclick="showAbout()">
-        ℹ About
+        About
     </div>
 
     </div>
@@ -45,11 +45,11 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
 <div id="settingsMenu" class="settings-menu">
 
-    <h3>⚙ Settings</h3>
+    <h3> Settings</h3>
 
 
     <div class="setting-option" onclick="toggleSetting('themeOptions')">
-        🎨 Theme
+         Theme
         <span>></span>
     </div>
 
@@ -68,7 +68,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
 
     <div class="setting-option" onclick="toggleSetting('voiceOptions')">
-        🎤 Voice Settings
+         Voice Settings
         <span>></span>
     </div>
 
@@ -103,7 +103,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
 
     <div class="setting-option" onclick="toggleSetting('calculatorOptions')">
-        🧮 Calculator
+         Calculator
         <span>></span>
     </div>
 
@@ -139,7 +139,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
 
     <div class="setting-option" onclick="toggleSetting('soundOptions')">
-        🔊 Button Sound
+         Button Sound
         <span>></span>
     </div>
 
@@ -240,27 +240,19 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 <button onclick="insertConstant('pi')">π</button>
 <button onclick="insertConstant('e')">e</button>
 <button onclick="squareValue()">x²</button>
-<button disabled></button>
+<button onclick="factorialValue()">x!</button>
+<!-- Row 8-->
 
+<button onclick="appendValue('(')">(</button>
+<button onclick="appendValue(')')">)</button>
+<button onclick="powerMode()">x^y</button>
+<button id="voiceBtn" class="voice-btn-small" onclick="startVoiceInput()">
+    <i class="fas fa-microphone"></i>
+</button>
+<!-- <button disabled></button> -->
 
     </div>
-<div class="voice-bar">
 
-    <button id="voiceBtn" class="voice-btn" onclick="startVoiceInput()">
-        <i class="fas fa-microphone"></i>
-    </button>
-<div class="sound-wave">
-    <span></span>
-    <span></span>
-    <span></span>
-    <span></span>
-    <span></span>
-</div>
-    <div class="voice-text">
-        Tap and Speak
-    </div>
-
-</div>
 </div>
 
 </div>
@@ -387,9 +379,14 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 </div>
   
 
+
+<div id="voiceAnimation" class="voice-animation" style="display:none;">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
 </div>
-
-
 
 <script src="script.js"></script>
 </body>
