@@ -47,36 +47,22 @@ function appendValue(value) {
     document.getElementById("expression").innerText = expression;
 }
 
-
-   async function calculateResult() {
-
-    if (!expression.trim()) {
-        document.getElementById("result").innerText = "Enter a calculation";
-        return;
-    }
-
+function calculateResult() {
+    playButtonSound();
     try {
-        const response = await fetch(
-            "http://127.0.0.1:8000/api/calculate/?expression=" +
-            encodeURIComponent(expression)
-        );
 
-        const data = await response.json();
+        let answer = eval(expression);
 
-        if (!response.ok) {
-            throw new Error(data.error || "Calculation failed");
-        }
+        document.getElementById("result").innerText = answer;
 
-        document.getElementById("result").innerText = data.result;
-
-        historyList.push(expression + " = " + data.result);
+        historyList.push(expression + " = " + answer);
         saveHistory();
 
-    } catch (error) {
-        document.getElementById("result").innerText = error.message;
+    } catch {
+
+        document.getElementById("result").innerText = "Error";
     }
 }
-
 
 function clearDisplay() {
     playButtonSound();
@@ -546,304 +532,615 @@ shapeSelect.addEventListener("change", function () {
         value3.style.display = "none";
     }
 });
-async function calculateFormula() {
-    let formula = document.getElementById("formulaSelect").value;
-    let shape = document.getElementById("shapeSelect").value;
+function calculateFormula() {
 
-    let value1 = document.getElementById("value1").value;
-    let value2 = document.getElementById("value2").value;
-    let value3 = document.getElementById("value3").value;
+    let formula =
+        document.getElementById("formulaSelect").value;
 
-    let params = new URLSearchParams();
+    let shape =
+        document.getElementById("shapeSelect").value;
+
+    let value1 =
+        parseFloat(document.getElementById("value1").value);
+
+    let result = 0;
     let historyText = "";
-
+    let inputText =
+        document.getElementById("value1").value;
+    let numbers =
+        inputText.split(",").map(Number);
     if (formula === "Area") {
+
         if (shape === "Circle") {
-            params.set("formula", "circle_area");
-            params.set("radius", value1);
-            historyText = "Area of Circle | Radius=" + value1;
-        } else if (shape === "Square") {
-            params.set("formula", "square_area");
-            params.set("side", value1);
-            historyText = "Area of Square | Side=" + value1;
-        } else if (shape === "Rectangle") {
-            params.set("formula", "rectangle_area");
-            params.set("length", value1);
-            params.set("width", value2);
-            historyText = "Area of Rectangle | L=" + value1 + ", W=" + value2;
-        } else if (shape === "Triangle") {
-            params.set("formula", "triangle_area");
-            params.set("base", value1);
-            params.set("height", value2);
-            historyText = "Area of Triangle | Base=" + value1 + ", Height=" + value2;
-        } else if (shape === "Parallelogram") {
-            params.set("formula", "parallelogram_area");
-            params.set("base", value1);
-            params.set("height", value2);
-            historyText = "Area of Parallelogram | Base=" + value1 + ", Height=" + value2;
+
+            result = Math.PI * value1 * value1;
+
+            historyText =
+                "Area of Circle | Radius=" +
+                value1 +
+                " → " +
+                result.toFixed(2);
+
+        }
+
+        else if (shape === "Square") {
+
+            result = value1 * value1;
+
+            historyText =
+                "Area of Square | Side=" +
+                value1 +
+                " → " +
+                result.toFixed(2);
+
+        }
+
+        else if (shape === "Rectangle") {
+
+            let length =
+                parseFloat(document.getElementById("value1").value);
+
+            let width =
+                parseFloat(document.getElementById("value2").value);
+
+            result = length * width;
+
+            historyText =
+                "Area of Rectangle | Length=" +
+                length +
+                ", Width=" +
+                width +
+                " → " +
+                result.toFixed(2);
+        }
+
+        else if (shape === "Triangle") {
+
+            let base =
+                parseFloat(document.getElementById("value1").value);
+
+            let height =
+                parseFloat(document.getElementById("value2").value);
+            result = 0.5 * base * height;
+
+            historyText =
+                "Area of Triangle | Base=" +
+                base +
+                ", Height=" +
+                height +
+                " → " +
+                result.toFixed(2);
+        }
+
+        else if (shape === "Parallelogram") {
+
+            let base =
+                parseFloat(document.getElementById("value1").value);
+
+            let height =
+                parseFloat(document.getElementById("value2").value);
+            result = base * height;
+
+            historyText =
+                "Area of Parallelogram | Base=" +
+                base +
+                ", Height=" +
+                height +
+                " → " +
+                result.toFixed(2);
         }
     }
     else if (formula === "Volume") {
 
-    else if (formula === "Volume") {
+        let value2 =
+            parseFloat(document.getElementById("value2").value);
+
+        let value3 =
+            parseFloat(document.getElementById("value3").value);
+
         if (shape === "Cube") {
-            params.set("formula", "cube_volume");
-            params.set("side", value1);
-            historyText = "Volume of Cube | Side=" + value1;
-        } else if (shape === "Cuboid") {
-            params.set("formula", "cuboid_volume");
-            params.set("length", value1);
-            params.set("width", value2);
-            params.set("height", value3);
-            historyText = "Volume of Cuboid | L=" + value1 + ", W=" + value2 + ", H=" + value3;
-        } else if (shape === "Cylinder") {
-            params.set("formula", "cylinder_volume");
-            params.set("radius", value1);
-            params.set("height", value2);
-            historyText = "Volume of Cylinder | R=" + value1 + ", H=" + value2;
-        } else if (shape === "Cone") {
-            params.set("formula", "cone_volume");
-            params.set("radius", value1);
-            params.set("height", value2);
-            historyText = "Volume of Cone | R=" + value1 + ", H=" + value2;
-        } else if (shape === "Sphere") {
-            params.set("formula", "sphere_volume");
-            params.set("radius", value1);
-            historyText = "Volume of Sphere | Radius=" + value1;
+
+            result = value1 * value1 * value1;
+
+            historyText =
+                "Volume of Cube | Side=" +
+                value1 +
+                " → " +
+                result.toFixed(2);
+        }
+
+        else if (shape === "Cuboid") {
+            result = value1 * value2 * value3;
+
+            historyText =
+                "Volume of Cuboid | Length=" +
+                value1 +
+                ", Width=" +
+                value2 +
+                ", Height=" +
+                value3 +
+                " → " +
+                result.toFixed(2);
+        }
+
+        else if (shape === "Cylinder") {
+
+            result = Math.PI * value1 * value1 * value2;
+
+            historyText =
+                "Volume of Cylinder | Radius=" +
+                value1 +
+                ", Height=" +
+                value2 +
+                " → " +
+                result.toFixed(2);
+        }
+
+        else if (shape === "Cone") {
+            result = (1 / 3) * Math.PI * value1 * value1 * value2;
+
+            historyText =
+                "Volume of Cone | Radius=" +
+                value1 +
+                ", Height=" +
+                value2 +
+                " → " +
+                result.toFixed(2);
+        }
+
+        else if (shape === "Sphere") {
+
+            result = (4 / 3) * Math.PI * value1 * value1 * value1;
+
+            historyText =
+                "Volume of Sphere | Radius=" +
+                value1 +
+                " → " +
+                result.toFixed(2);
         }
     }
     else if (formula === "Perimeter") {
 
-    else if (formula === "Perimeter") {
+        let value2 =
+            parseFloat(document.getElementById("value2").value);
+
         if (shape === "Square") {
-            params.set("formula", "square_perimeter");
-            params.set("side", value1);
-            historyText = "Perimeter of Square | Side=" + value1;
-        } else if (shape === "Rectangle") {
-            params.set("formula", "rectangle_perimeter");
-            params.set("length", value1);
-            params.set("width", value2);
-            historyText = "Perimeter of Rectangle | L=" + value1 + ", W=" + value2;
-        } else if (shape === "Triangle") {
-            params.set("formula", "triangle_perimeter");
-            params.set("side1", value1);
-            params.set("side2", value2);
-            params.set("side3", value3);
-            historyText = "Perimeter of Triangle | Sides=" + value1 + "," + value2 + "," + value3;
-        } else if (shape === "Circle") {
-            params.set("formula", "circle_perimeter");
-            params.set("radius", value1);
-            historyText = "Circumference of Circle | Radius=" + value1;
-        } else if (shape === "Parallelogram") {
-            params.set("formula", "parallelogram_perimeter");
-            params.set("base", value1);
-            params.set("side", value2);
-            historyText = "Perimeter of Parallelogram | Base=" + value1 + ", Side=" + value2;
+            result = 4 * value1;
+
+            historyText =
+                "Perimeter of Square | Side=" +
+                value1 +
+                " → " +
+                result.toFixed(2);
+        }
+
+        else if (shape === "Rectangle") {
+
+            result = 2 * (value1 + value2);
+
+            historyText =
+                "Perimeter of Rectangle | Length=" +
+                value1 +
+                ", Width=" +
+                value2 +
+                " → " +
+                result.toFixed(2);
+        }
+
+        else if (shape === "Triangle") {
+
+            {
+
+                let side1 =
+                    parseFloat(document.getElementById("value1").value);
+
+                let side2 =
+                    parseFloat(document.getElementById("value2").value);
+
+                let side3 =
+                    parseFloat(document.getElementById("value3").value);
+
+                result = side1 + side2 + side3;
+                historyText =
+                    "Perimeter of Triangle | Sides=" +
+                    side1 + "," + side2 + "," + side3 +
+                    " → " +
+                    result.toFixed(2);
+            }
+        }
+
+        else if (shape === "Circle") {
+
+            result = 2 * Math.PI * value1;
+
+            historyText =
+                "Circumference of Circle | Radius=" +
+                value1 +
+                " → " +
+                result.toFixed(2);
+        }
+
+        else if (shape === "Parallelogram") {
+
+            result = 2 * (value1 + value2);
+
+            historyText =
+                "Perimeter of Parallelogram | Base=" +
+                value1 +
+                ", Side=" +
+                value2 +
+                " → " +
+                result.toFixed(2);
         }
     }
-
     else if (formula === "Speed") {
-        params.set("formula", "speed");
-        params.set("distance", value1);
-        params.set("time", value2);
-        historyText = "Speed | Distance=" + value1 + ", Time=" + value2;
-    }
 
+        let distance =
+            parseFloat(document.getElementById("value1").value);
+
+        let time =
+            parseFloat(document.getElementById("value2").value);
+
+        result = distance / time;
+        historyText =
+            "Speed | Distance=" +
+            distance +
+            ", Time=" +
+            time +
+            " → " +
+            result.toFixed(2);
+    }
     else if (formula === "Simple Interest") {
-        params.set("formula", "simple_interest");
-        params.set("principal", value1);
-        params.set("rate", value2);
-        params.set("time", value3);
-        historyText = "Simple Interest | P=" + value1 + ", R=" + value2 + ", T=" + value3;
-    }
 
+        let principal =
+            parseFloat(document.getElementById("value1").value);
+
+        let rate =
+            parseFloat(document.getElementById("value2").value);
+
+        let time =
+            parseFloat(document.getElementById("value3").value);
+
+        result = (principal * rate * time) / 100;
+        historyText =
+            "Simple Interest | P=" +
+            principal +
+            ", R=" +
+            rate +
+            ", T=" +
+            time +
+            " → " +
+            result.toFixed(2);
+    }
     else if (formula === "BMI") {
-        params.set("formula", "bmi");
-        params.set("weight", value1);
-        params.set("height", value2);
-        historyText = "BMI | Weight=" + value1 + ", Height=" + value2;
-    }
 
+        let weight =
+            parseFloat(document.getElementById("value1").value);
+
+        let height =
+            parseFloat(document.getElementById("value2").value);
+
+        result = weight / (height * height);
+        historyText =
+            "BMI | Weight=" +
+            weight +
+            ", Height=" +
+            height +
+            " → " +
+            result.toFixed(2);
+    }
     else if (formula === "Percentage") {
-        params.set("formula", "percentage");
-        params.set("part", value1);
-        params.set("whole", value2);
-        historyText = "Percentage | Obtained=" + value1 + ", Total=" + value2;
-    }
 
+        let obtained =
+            parseFloat(document.getElementById("value1").value);
+
+        let total =
+            parseFloat(document.getElementById("value2").value);
+
+        result = (obtained / total) * 100;
+        historyText =
+            "Percentage | Marks=" +
+            obtained +
+            "/" +
+            total +
+            " → " +
+            result.toFixed(2) + "%";
+    }
     else if (formula === "Mean") {
-        params.set("formula", "mean");
-        params.set("numbers", value1);
-        historyText = "Mean | Data=" + value1;
-    }
 
+        let numbers =
+            document.getElementById("value1").value
+                .split(",")
+                .map(Number);
+
+        let sum = 0;
+
+        for (let i = 0; i < numbers.length; i++) {
+            sum += numbers[i];
+        }
+
+        result = sum / numbers.length;
+        historyText =
+            "Mean | Data=" +
+            numbers.join(",") +
+            " → " +
+            result.toFixed(2);
+    }
     else if (formula === "Median") {
-        params.set("formula", "median");
-        params.set("numbers", value1);
-        historyText = "Median | Data=" + value1;
-    }
 
+        let numbers =
+            document.getElementById("value1").value
+                .split(",")
+                .map(Number);
+
+        numbers.sort((a, b) => a - b);
+
+        let middle =
+            Math.floor(numbers.length / 2);
+
+        if (numbers.length % 2 === 0) {
+
+            result =
+                (numbers[middle - 1] + numbers[middle]) / 2;
+        }
+        else {
+
+            result = numbers[middle];
+        }
+        historyText =
+            "Median | Data=" +
+            numbers.join(",") +
+            " → " +
+            result.toFixed(2);
+    }
     else if (formula === "Mode") {
-        params.set("formula", "mode");
-        params.set("numbers", value1);
-        historyText = "Mode | Data=" + value1;
-    }
 
+        let numbers =
+            document.getElementById("value1").value
+                .split(",")
+                .map(Number);
+
+        let count = {};
+        let maxCount = 0;
+        let mode = numbers[0];
+
+        for (let num of numbers) {
+
+            count[num] = (count[num] || 0) + 1;
+
+            if (count[num] > maxCount) {
+
+                maxCount = count[num];
+                mode = num;
+            }
+        }
+
+        result = mode;
+        historyText =
+            "Mode | Data=" +
+            numbers.join(",") +
+            " → " +
+            result;
+    }
     else if (formula === "Variance") {
-        params.set("formula", "variance_population");
-        params.set("numbers", value1);
-        historyText = "Variance | Data=" + value1;
-    }
 
+        let numbers =
+            document.getElementById("value1").value
+                .split(",")
+                .map(Number);
+
+        let mean =
+            numbers.reduce((a, b) => a + b, 0) / numbers.length;
+
+        let variance =
+            numbers.reduce((sum, num) =>
+                sum + Math.pow(num - mean, 2), 0)
+            / numbers.length;
+
+        result = variance;
+        historyText =
+            "Variance | Data=" +
+            numbers.join(",") +
+            " → " +
+            result.toFixed(2);
+    }
     else if (formula === "Standard Deviation") {
-        params.set("formula", "std_dev_population");
-        params.set("numbers", value1);
-        historyText = "Standard Deviation | Data=" + value1;
-    }
 
+        let numbers =
+            document.getElementById("value1").value
+                .split(",")
+                .map(Number);
+
+        let mean =
+            numbers.reduce((a, b) => a + b, 0) / numbers.length;
+
+        let variance =
+            numbers.reduce((sum, num) =>
+                sum + Math.pow(num - mean, 2), 0)
+            / numbers.length;
+
+        result = Math.sqrt(variance);
+        historyText =
+            "Standard Deviation | Data=" +
+            numbers.join(",") +
+            " → " +
+            result.toFixed(2);
+    }
     else if (formula === "Z-Score") {
-        params.set("formula", "z_score");
-        params.set("value", value1);
-        params.set("mean", value2);
-        params.set("std_dev", value3);
-        historyText = "Z-Score | X=" + value1 + ", Mean=" + value2 + ", SD=" + value3;
-    }
 
+        let x =
+            parseFloat(document.getElementById("value1").value);
+
+        let mean =
+            parseFloat(document.getElementById("value2").value);
+
+        let stdDev =
+            parseFloat(document.getElementById("value3").value);
+
+        result = (x - mean) / stdDev;
+        historyText =
+            "Z-Score | X=" +
+            x +
+            ", Mean=" +
+            mean +
+            ", SD=" +
+            stdDev +
+            " → " +
+            result.toFixed(2);
+    }
     else if (formula === "Covariance") {
-        params.set("formula", "covariance");
-        params.set("numbers_x", value1);
-        params.set("numbers_y", value2);
-        historyText = "Covariance | X=" + value1 + ", Y=" + value2;
-    }
 
+        let x =
+            document.getElementById("value1").value
+                .split(",")
+                .map(Number);
+
+        let y =
+            document.getElementById("value2").value
+                .split(",")
+                .map(Number);
+
+        let meanX =
+            x.reduce((a, b) => a + b, 0) / x.length;
+
+        let meanY =
+            y.reduce((a, b) => a + b, 0) / y.length;
+
+        let sum = 0;
+
+        for (let i = 0; i < x.length; i++) {
+
+            sum +=
+                (x[i] - meanX) *
+                (y[i] - meanY);
+        }
+
+        result = sum / x.length;
+        historyText =
+            "Covariance | X=" +
+            x.join(",") +
+            " | Y=" +
+            y.join(",") +
+            " → " +
+            result.toFixed(2);
+    }
+    document.getElementById("result").innerText =
+        result.toFixed(2);
+    if (historyText !== "") {
+
+        historyList.push(historyText);
+
+    }
     else {
-        document.getElementById("result").innerText = "Choose a formula first";
-        return;
-    }
 
-    try {
-        const response = await fetch(
-            "http://127.0.0.1:8000/api/formula/?" + params.toString()
+        historyList.push(
+            formula +
+            (shape ? " (" + shape + ")" : "") +
+            " = " +
+            result.toFixed(2)
         );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || "Calculation failed");
-        }
-
-        document.getElementById("result").innerText = data.result;
-
-        historyList.push(historyText + " → " + data.result);
-        saveHistory();
-
-    } catch (error) {
-        document.getElementById("result").innerText = error.message;
     }
+    saveHistory();
 }
-async function convertCurrency() {
-    const amount = document.getElementById("currencyAmount").value;
-    const type = document.getElementById("currencySelect").value;
+function convertCurrency() {
 
-    const conversionMap = {
-        "INR → USD": { from: "INR", to: "USD" },
-        "USD → INR": { from: "USD", to: "INR" },
-        "INR → EUR": { from: "INR", to: "EUR" },
-        "EUR → INR": { from: "EUR", to: "INR" },
-        "INR → GBP": { from: "INR", to: "GBP" },
-        "GBP → INR": { from: "GBP", to: "INR" }
-    };
+    let amount =
+        parseFloat(document.getElementById("currencyAmount").value);
 
-    const currencies = conversionMap[type];
+    let type =
+        document.getElementById("currencySelect").value;
 
-    if (!amount || Number(amount) < 0) {
-        document.getElementById("result").innerText = "Enter a valid amount";
-        return;
+    let result = 0;
+
+    if (type === "INR → USD") {
+        result = amount / 85;
+    }
+    else if (type === "USD → INR") {
+        result = amount * 85;
+    }
+    else if (type === "INR → EUR") {
+        result = amount / 98;
+    }
+    else if (type === "EUR → INR") {
+        result = amount * 98;
+    }
+    else if (type === "INR → GBP") {
+        result = amount / 115;
+    }
+    else if (type === "GBP → INR") {
+        result = amount * 115;
     }
 
-    try {
-        const response = await fetch(
-            "http://127.0.0.1:8000/api/currency/?amount=" +
-            encodeURIComponent(amount) +
-            "&from=" + currencies.from +
-            "&to=" + currencies.to
-        );
+    document.getElementById("result").innerText =
+        result.toFixed(2);
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || "Conversion failed");
-        }
-
-        document.getElementById("result").innerText = data.result;
-
-        historyList.push(type + ": " + amount + " = " + data.result);
-        saveHistory();
-
-    } catch (error) {
-        document.getElementById("result").innerText = error.message;
-    }
+    historyList.push(
+        type + ": " +
+        amount + " = " +
+        result.toFixed(2)
+    );
+    saveHistory();
 }
-async function convertBinary() {
-    const value = document.getElementById("binaryValue").value.trim();
-    const type = document.getElementById("binarySelect").value;
 
-    const directionMap = {
-        "Decimal → Binary": "dec_to_bin",
-        "Binary → Decimal": "bin_to_dec"
-    };
+function convertBinary() {
 
-    const direction = directionMap[type];
+    let value = document.getElementById("binaryValue").value;
 
-    if (!value) {
-        document.getElementById("result").innerText = "Enter a value";
-        return;
+    let type = document.getElementById("binarySelect").value;
+
+    let result = "";
+
+    if (type === "Decimal → Binary") {
+        result = parseInt(value, 10).toString(2);
     }
 
-    if (!direction) {
-        document.getElementById("result").innerText =
-            "Choose Decimal → Binary or Binary → Decimal";
-        return;
+    else if (type === "Binary → Decimal") {
+        result = parseInt(value, 2);
     }
 
-    try {
-        const response = await fetch(
-            "http://127.0.0.1:8000/api/binary/?direction=" +
-            direction +
-            "&value=" +
-            encodeURIComponent(value)
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || "Conversion failed");
-        }
-
-        document.getElementById("result").innerText = data.result;
-
-        historyList.push(type + ": " + value + " = " + data.result);
-        saveHistory();
-
-    } catch (error) {
-        document.getElementById("result").innerText = error.message;
+    else if (type === "Decimal → Octal") {
+        result = parseInt(value, 10).toString(8);
     }
+
+    else if (type === "Octal → Decimal") {
+        result = parseInt(value, 8);
+    }
+
+    else if (type === "Decimal → Hexadecimal") {
+        result = parseInt(value, 10).toString(16).toUpperCase();
+    }
+
+    else if (type === "Hexadecimal → Decimal") {
+        result = parseInt(value, 16);
+    }
+    document.getElementById("result").innerText =
+        result;
+
+    historyList.push(
+        type + ": " +
+        value + " = " +
+        result
+    );
+    saveHistory();
 }
-function openHistory(){
-    document.getElementById("sideMenu").style.display="none";
+
+function openHistory() {
+    document.getElementById("sideMenu").style.display = "none"
     document.getElementById("historyPage").style.display = "block";
 
-    let content = document.getElementById("historyContent");
+    let content =
+        document.getElementById("historyContent");
 
-    if(historyList.length === 0){
+    if (historyList.length === 0) {
+
         content.innerHTML = "No History Yet";
     }
-    else{
+    else {
+
         content.innerHTML = historyList.join("<br>");
     }
 }
-
-function closeHistory(){
+function closeHistory() {
 
     document.getElementById("historyPage").style.display = "none";
 }
