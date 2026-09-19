@@ -1,4 +1,5 @@
 from datetime import timedelta
+from urllib import request
 from django.utils import timezone
 import requests
 from .models import CurrencyRate
@@ -67,7 +68,6 @@ def binary_convert(request):
         return JsonResponse({"error": "Invalid number for this conversion"}, status=400)
 
     return JsonResponse({"result": result})
-
 def formula_calculate(request):
     formula = request.GET.get("formula", "")
 
@@ -79,6 +79,73 @@ def formula_calculate(request):
         if formula == "circle_area":
             r = float(request.GET.get("radius"))
             result = math.pi * r ** 2
+
+        elif formula == "square_area":
+            side = float(request.GET.get("side"))
+            result = side ** 2
+
+        elif formula == "rectangle_area":
+            length = float(request.GET.get("length"))
+            width = float(request.GET.get("width"))
+            result = length * width
+
+        elif formula == "triangle_area":
+            base = float(request.GET.get("base"))
+            height = float(request.GET.get("height"))
+            result = 0.5 * base * height
+
+        elif formula == "parallelogram_area":
+            base = float(request.GET.get("base"))
+            height = float(request.GET.get("height"))
+            result = base * height
+
+        elif formula == "cube_volume":
+            side = float(request.GET.get("side"))
+            result = side ** 3
+
+        elif formula == "cuboid_volume":
+            l = float(request.GET.get("length"))
+            w = float(request.GET.get("width"))
+            h = float(request.GET.get("height"))
+            result = l * w * h
+
+        elif formula == "cylinder_volume":
+            r = float(request.GET.get("radius"))
+            h = float(request.GET.get("height"))
+            result = math.pi * r ** 2 * h
+
+        elif formula == "cone_volume":
+            r = float(request.GET.get("radius"))
+            h = float(request.GET.get("height"))
+            result = (1/3) * math.pi * r ** 2 * h
+
+        elif formula == "sphere_volume":
+            r = float(request.GET.get("radius"))
+            result = (4/3) * math.pi * r ** 3
+
+        elif formula == "square_perimeter":
+            side = float(request.GET.get("side"))
+            result = 4 * side
+
+        elif formula == "rectangle_perimeter":
+            length = float(request.GET.get("length"))
+            width = float(request.GET.get("width"))
+            result = 2 * (length + width)
+
+        elif formula == "triangle_perimeter":
+            a = float(request.GET.get("side1"))
+            b = float(request.GET.get("side2"))
+            c = float(request.GET.get("side3"))
+            result = a + b + c
+
+        elif formula == "circle_perimeter":
+            r = float(request.GET.get("radius"))
+            result = 2 * math.pi * r
+
+        elif formula == "parallelogram_perimeter":
+            base = float(request.GET.get("base"))
+            side = float(request.GET.get("side"))
+            result = 2 * (base + side)
 
         elif formula == "speed":
             distance = float(request.GET.get("distance"))
@@ -168,41 +235,6 @@ def formula_calculate(request):
 
     return JsonResponse({"formula": formula, "result": round(result, 4)})
 
-@csrf_exempt
-def matrix_calculate(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "This endpoint needs a POST request"}, status=400)
-
-    try:
-        body = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
-
-    operation = body.get("operation")   # "add", "sub", or "mul"
-    a = body.get("matrix_a")
-    b = body.get("matrix_b")
-
-    if not a or not b:
-        return JsonResponse({"error": "Provide matrix_a and matrix_b"}, status=400)
-
-    rows_a, cols_a = len(a), len(a[0])
-    rows_b, cols_b = len(b), len(b[0])
-
-    try:
-        if operation == "add":
-            result = [[a[r][c] + b[r][c] for c in range(cols_a)] for r in range(rows_a)]
-        elif operation == "sub":
-            result = [[a[r][c] - b[r][c] for c in range(cols_a)] for r in range(rows_a)]
-        elif operation == "mul":
-            if cols_a != rows_b:
-                return JsonResponse({"error": "Matrix sizes don't match for multiplication"}, status=400)
-            result = [[sum(a[r][k] * b[k][c] for k in range(cols_a)) for c in range(cols_b)] for r in range(rows_a)]
-        else:
-            return JsonResponse({"error": "operation must be add, sub, or mul"}, status=400)
-    except (IndexError, TypeError):
-        return JsonResponse({"error": "Matrices must be the same size to add/subtract"}, status=400)
-
-    return JsonResponse({"result": result})
 
 FALLBACK_RATES = {
     "USD": 1.0,
