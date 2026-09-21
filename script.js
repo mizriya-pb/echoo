@@ -46,19 +46,90 @@ function appendValue(value) {
 
     document.getElementById("expression").innerText = expression;
 }
+function updateResult(value) {
 
+    document.getElementById("result").innerText = value;
+
+}
 function calculateResult() {
+
     playButtonSound();
+
     try {
 
-        let answer = eval(expression);
+        let calcExpression = expression;
 
-        document.getElementById("result").innerText = answer;
+        // Convert calculator symbols to JavaScript operators
+        calcExpression = calcExpression
+            .replace(/×/g, "*")
+            .replace(/÷/g, "/")
+            .replace(/−/g, "-");
 
-        historyList.push(expression + " = " + answer);
+        // Square root
+        calcExpression = calcExpression.replace(
+            /√\s*(\d+(?:\.\d+)?)/g,
+            "Math.sqrt($1)"
+        );
+
+        // SIN
+        calcExpression = calcExpression.replace(
+            /sin\((\d+(?:\.\d+)?)\)/g,
+            function(match, num) {
+                return angleMode === "degree"
+                    ? "Math.sin(" + num + " * Math.PI / 180)"
+                    : "Math.sin(" + num + ")";
+            }
+        );
+
+        // COS
+        calcExpression = calcExpression.replace(
+            /cos\((\d+(?:\.\d+)?)\)/g,
+            function(match, num) {
+                return angleMode === "degree"
+                    ? "Math.cos(" + num + " * Math.PI / 180)"
+                    : "Math.cos(" + num + ")";
+            }
+        );
+
+        // TAN
+        calcExpression = calcExpression.replace(
+            /tan\((\d+(?:\.\d+)?)\)/g,
+            function(match, num) {
+                return angleMode === "degree"
+                    ? "Math.tan(" + num + " * Math.PI / 180)"
+                    : "Math.tan(" + num + ")";
+            }
+        );
+
+        // LOG
+        calcExpression = calcExpression.replace(
+            /log\((\d+(?:\.\d+)?)\)/g,
+            "Math.log10($1)"
+        );
+
+        // LN
+        calcExpression = calcExpression.replace(
+            /ln\((\d+(?:\.\d+)?)\)/g,
+            "Math.log($1)"
+        );
+
+        // Calculate the complete expression
+        let answer = eval(calcExpression);
+
+        // Show result
+        document.getElementById("result").innerText =
+            Number(answer).toFixed(decimalPlaces);
+
+        // Save history
+        historyList.push(
+            expression + " = " + Number(answer).toFixed(decimalPlaces)
+        );
+
         saveHistory();
 
-    } catch {
+    } catch (error) {
+
+        console.log("Calculation Error:", error);
 
         document.getElementById("result").innerText = "Error";
     }
@@ -120,69 +191,21 @@ function calculateScientific(type) {
 
     playButtonSound();
 
-    let num = parseFloat(expression);
-
-    if (isNaN(num)) {
-        document.getElementById("result").innerText = "Enter Number";
+    if (
+        type === "sin" ||
+        type === "cos" ||
+        type === "tan" ||
+        type === "log" ||
+        type === "ln"
+    ) {
+        appendValue(type + "(");
         return;
     }
 
-    let result;
-
-    switch (type) {
-
-        case "sin":
-
-            result =
-                angleMode === "degree"
-                    ? Math.sin(num * Math.PI / 180)
-                    : Math.sin(num);
-
-            break;
-
-        case "cos":
-
-            result =
-                angleMode === "degree"
-                    ? Math.cos(num * Math.PI / 180)
-                    : Math.cos(num);
-
-            break;
-
-        case "tan":
-
-            result =
-                angleMode === "degree"
-                    ? Math.tan(num * Math.PI / 180)
-                    : Math.tan(num);
-
-            break;
-
-        case "log":
-            result = Math.log10(num);
-            break;
-
-        case "ln":
-            result = Math.log(num);
-            break;
-
-        case "sqrt":
-            result = Math.sqrt(num);
-            break;
+    if (type === "sqrt") {
+        appendValue("√");
+        return;
     }
-
-    document.getElementById("result").innerText =
-        Number(result).toFixed(decimalPlaces);
-
-    historyList.push(
-        type +
-        "(" +
-        num +
-        ") = " +
-        Number(result).toFixed(decimalPlaces)
-    );
-
-    saveHistory();
 }
 function insertConstant(type) {
     playButtonSound();
@@ -240,7 +263,55 @@ function showBinarySection() {
     document.getElementById("currencySection").style.display = "none";
     document.getElementById("binarySection").style.display = "block";
 }
+function resetRightPanel() {
 
+    // Show all three main sections
+    document.getElementById("formulaSection").style.display = "block";
+    document.getElementById("currencySection").style.display = "block";
+    document.getElementById("binarySection").style.display = "block";
+
+    // Reset formula
+    document.getElementById("formulaSelect").selectedIndex = 0;
+
+    const shapeContainer = document.getElementById("shapeContainer");
+    if (shapeContainer) {
+        shapeContainer.style.display = "none";
+    }
+
+    const formulaInputs = document.getElementById("formulaInputs");
+    if (formulaInputs) {
+        formulaInputs.style.display = "none";
+    }
+
+    // Clear formula inputs
+    document.getElementById("value1").value = "";
+    document.getElementById("value2").value = "";
+    document.getElementById("value3").value = "";
+
+    // Reset currency
+    document.getElementById("currencySelect").selectedIndex = 0;
+
+    const currencyInputs =
+        document.getElementById("currencyInputs");
+
+    if (currencyInputs) {
+        currencyInputs.style.display = "none";
+    }
+
+    document.getElementById("currencyAmount").value = "";
+
+    // Reset binary
+    document.getElementById("binarySelect").selectedIndex = 0;
+
+    const binaryInputs =
+        document.getElementById("binaryInputs");
+
+    if (binaryInputs) {
+        binaryInputs.style.display = "none";
+    }
+
+    document.getElementById("binaryValue").value = "";
+}
 function toggleMenu() {
 
     const menu =
@@ -1041,7 +1112,9 @@ function calculateFormula() {
         );
     }
     saveHistory();
+    resetRightPanel();
 }
+
 function convertCurrency() {
 
     let amount =
@@ -1080,6 +1153,7 @@ function convertCurrency() {
         result.toFixed(2)
     );
     saveHistory();
+    resetRightPanel();
 }
 
 function convertBinary() {
@@ -1122,6 +1196,7 @@ function convertBinary() {
         result
     );
     saveHistory();
+    resetRightPanel();
 }
 
 function openHistory() {
@@ -1148,13 +1223,7 @@ function closeHistory() {
 // ================= SETTINGS =================
 
 // Open Settings Page
-function openSettings() {
 
-    document.getElementById("sideMenu").style.display = "none";
-
-    document.getElementById("settingsPage").style.display = "block";
-
-}
 
 function clearHistory() {
 
@@ -1300,7 +1369,7 @@ window.onload = function () {
 
 const VoiceBtn = document.getElementById("voiceBtn");
 const soundWave = document.querySelector(".sound-wave");
-VoiceBtn.addEventListener("Click", () => {
+VoiceBtn.addEventListener("click", () => {
     soundWave.classList.toggle("active");
 });
 
@@ -1328,6 +1397,7 @@ Version: 1.0`
     );
 }
 function startVoiceInput() {
+    if (!voiceInputEnabled) return;
 
     const SpeechRecognition =
         window.SpeechRecognition ||
@@ -1344,26 +1414,48 @@ function startVoiceInput() {
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
-    recognition.start();
+    const soundWave = document.querySelector(".sound-wave");
 
+    // Show sound wave when listening starts
+    recognition.onstart = function () {
+        if (soundWave) {
+            soundWave.classList.add("active");
+        }
+
+        console.log("Voice recognition started");
+    };
+
+    // Get the spoken command
     recognition.onresult = function (event) {
 
         let speechText =
             event.results[0][0].transcript.toLowerCase();
 
-        processVoiceCommand(speechText);
+        console.log("You said:", speechText);
 
+        processVoiceCommand(speechText);
     };
 
+    // Stop sound wave when recognition ends
+    recognition.onend = function () {
+        if (soundWave) {
+            soundWave.classList.remove("active");
+        }
+
+        console.log("Voice recognition ended");
+    };
+
+    // Handle microphone/recognition errors
     recognition.onerror = function (event) {
 
-        console.log(
-            "Voice Error:",
-            event.error
-        );
+        if (soundWave) {
+            soundWave.classList.remove("active");
+        }
 
+        console.log("Voice Error:", event.error);
     };
 
+    recognition.start();
 }
 
 function processVoiceCommand(text) {
@@ -1391,16 +1483,20 @@ function processVoiceCommand(text) {
     // BASIC HELPERS
     // ---------------------------------------------------------
 
-    function speak(message) {
-        if (!("speechSynthesis" in window)) return;
+function speak(message) {
 
-        speechSynthesis.cancel();
+    if (!voiceOutputEnabled) return;
 
-        const voice = new SpeechSynthesisUtterance(String(message));
-        voice.lang = "en-US";
+    if (!("speechSynthesis" in window)) return;
 
-        speechSynthesis.speak(voice);
-    }
+    speechSynthesis.cancel();
+
+    const voice = new SpeechSynthesisUtterance(String(message));
+
+    voice.lang = "en-US";
+
+    speechSynthesis.speak(voice);
+}
 
     function clearExpression() {
         if (expressionBox) {
@@ -1495,10 +1591,11 @@ function processVoiceCommand(text) {
 
     function prepareFormula(formula, shape = "") {
 
-        clearExpression();
+      clearExpression();
 
-        if (!formulaSelectEl) return false;
+      showFormulaSection();
 
+      if (!formulaSelectEl) return false;
         formulaSelectEl.value = formula;
 
         formulaSelectEl.dispatchEvent(
@@ -1935,7 +2032,24 @@ function processVoiceCommand(text) {
             "seven": "7",
             "eight": "8",
             "nine": "9",
-            "ten": "10"
+            "ten": "10",
+            "eleven": "11",
+            "twelve": "12",
+            "thirteen": "13",
+            "fourteen": "14",
+            "fifteen": "15",
+            "sixteen": "16",
+            "seventeen": "17",
+            "eighteen": "18",
+            "nineteen": "19",
+            "twenty": "20",
+            "thirty": "30",
+            "forty": "40",
+            "fifty": "50",
+            "sixty": "60",
+            "seventy": "70",
+            "eighty": "80",
+            "ninety": "90"
         };
 
         Object.keys(numberWords).forEach(word => {
@@ -1950,165 +2064,130 @@ function processVoiceCommand(text) {
                 );
         });
 
+        // "twenty five" -> "20 5" -> "25"
+        textForNumbers = textForNumbers.replace(
+            /\b([2-9]0)\s+([1-9])\b/g,
+            function (m, tens, ones) {
+                return String(parseInt(tens) + parseInt(ones));
+            }
+        );
+
         // =========================================================
         // CURRENCY CONVERTER
         // =========================================================
 
-        const currencyNumbers =
-            getNumbers(textForNumbers);
+       // =========================================================
+// CURRENCY CONVERTER
+// =========================================================
+const currencyNumbers = getNumbers(textForNumbers);
+
+const isINR =
+    textForNumbers.includes("rupee") ||
+    textForNumbers.includes("rupees") ||
+    textForNumbers.includes("inr") ||
+    textForNumbers.includes("indian rupee") ||
+    textForNumbers.includes("rs");
+
+const isUSD =
+    textForNumbers.includes("dollar") ||
+    textForNumbers.includes("dollars") ||
+    textForNumbers.includes("usd");
+
+const isEUR =
+    textForNumbers.includes("euro") ||
+    textForNumbers.includes("euros") ||
+    textForNumbers.includes("eur");
+
+const isGBP =
+    textForNumbers.includes("pound") ||
+    textForNumbers.includes("pounds") ||
+    textForNumbers.includes("gbp") ||
+    textForNumbers.includes("sterling");
+
+if (currencyNumbers.length >= 1) {
+
+    const amount = currencyNumbers[0];
+
+    let conversion = "";
+
+    // INR ↔ USD
+    if (isINR && isUSD) {
 
         if (
-            (
-                textForNumbers.includes("rupee") ||
-                textForNumbers.includes("rupees") ||
-                textForNumbers.includes("inr") ||
-                textForNumbers.includes("indian rupee")
-            ) &&
-            (
-                textForNumbers.includes("dollar") ||
-                textForNumbers.includes("usd")
-            )
+            textForNumbers.includes("rs") ||
+            textForNumbers.includes("rupee") ||
+            textForNumbers.includes("inr")
         ) {
 
-            if (currencyNumbers.length >= 1) {
+            conversion = "INR → USD";
 
-                const amount =
-                    currencyNumbers[0];
+        } else {
 
-                let conversion = "";
+            conversion = "USD → INR";
 
-                if (
-                    textForNumbers.includes("rupee") ||
-                    textForNumbers.includes("rupees") ||
-                    textForNumbers.includes("inr") ||
-                    textForNumbers.includes("indian rupee")
-                ) {
-                    conversion = "INR → USD";
-                } else {
-                    conversion = "USD → INR";
-                }
-
-                clearExpression();
-
-                selectDropdown(
-                    currencySelectEl,
-                    conversion
-                );
-
-                if (currencyAmountEl) {
-                    currencyAmountEl.value = amount;
-                }
-
-                if (typeof convertCurrency === "function") {
-                    convertCurrency();
-                }
-
-                resultOnlyVoice();
-
-                return;
-            }
         }
+    }
+
+    // INR ↔ EUR
+    else if (isINR && isEUR) {
 
         if (
-            (
-                textForNumbers.includes("rupee") ||
-                textForNumbers.includes("rupees") ||
-                textForNumbers.includes("inr") ||
-                textForNumbers.includes("indian rupee")
-            ) &&
-            (
-                textForNumbers.includes("euro") ||
-                textForNumbers.includes("eur")
-            )
+            textForNumbers.includes("euro") ||
+            textForNumbers.includes("euros") ||
+            textForNumbers.includes("eur")
         ) {
 
-            if (currencyNumbers.length >= 1) {
+            conversion = "EUR → INR";
 
-                const amount =
-                    currencyNumbers[0];
+        } else {
 
-                let conversion = "";
+            conversion = "INR → EUR";
 
-                if (
-                    textForNumbers.includes("rupee") ||
-                    textForNumbers.includes("rupees") ||
-                    textForNumbers.includes("inr") ||
-                    textForNumbers.includes("indian rupee")
-                ) {
-                    conversion = "INR → EUR";
-                } else {
-                    conversion = "EUR → INR";
-                }
-
-                clearExpression();
-
-                selectDropdown(
-                    currencySelectEl,
-                    conversion
-                );
-
-                currencyAmountEl.value = amount;
-
-                if (typeof convertCurrency === "function") {
-                    convertCurrency();
-                }
-
-                resultOnlyVoice();
-
-                return;
-            }
         }
+    }
+
+    // INR ↔ GBP
+    else if (isINR && isGBP) {
 
         if (
-            (
-                textForNumbers.includes("rupee") ||
-                textForNumbers.includes("rupees") ||
-                textForNumbers.includes("inr") ||
-                textForNumbers.includes("indian rupee")
-            ) &&
-            (
-                textForNumbers.includes("pound") ||
-                textForNumbers.includes("gbp") ||
-                textForNumbers.includes("sterling")
-            )
+            textForNumbers.includes("pound") ||
+            textForNumbers.includes("pounds") ||
+            textForNumbers.includes("gbp")
         ) {
 
-            if (currencyNumbers.length >= 1) {
+            conversion = "GBP → INR";
 
-                const amount =
-                    currencyNumbers[0];
+        } else {
 
-                let conversion = "";
+            conversion = "INR → GBP";
 
-                if (
-                    textForNumbers.includes("rupee") ||
-                    textForNumbers.includes("rupees") ||
-                    textForNumbers.includes("inr") ||
-                    textForNumbers.includes("indian rupee")
-                ) {
-                    conversion = "INR → GBP";
-                } else {
-                    conversion = "GBP → INR";
-                }
-
-                clearExpression();
-
-                selectDropdown(
-                    currencySelectEl,
-                    conversion
-                );
-
-                currencyAmountEl.value = amount;
-
-                if (typeof convertCurrency === "function") {
-                    convertCurrency();
-                }
-
-                resultOnlyVoice();
-
-                return;
-            }
         }
+    }
+
+    if (conversion !== "") {
+
+        clearExpression();
+
+        showCurrencySection();
+
+        selectDropdown(
+            currencySelectEl,
+            conversion
+        );
+
+        if (currencyAmountEl) {
+            currencyAmountEl.value = amount;
+        }
+
+        if (typeof convertCurrency === "function") {
+            convertCurrency();
+        }
+
+        resultOnlyVoice();
+
+        return;
+    }
+}
 
         // =========================================================
         // BINARY / OCTAL / HEXADECIMAL CONVERTER
@@ -2235,10 +2314,12 @@ function processVoiceCommand(text) {
 
                 clearExpression();
 
+                showBinarySection();
+
                 selectDropdown(
                     binarySelectEl,
                     binaryConversion
-                );
+                 );
 
                 binaryValueEl.value =
                     binaryValue;
@@ -3023,414 +3104,218 @@ function processVoiceCommand(text) {
         // SIN
         // ---------------------------------------------------------
 
-        if (
-            normalized.match(/^sin\b/)
-        ) {
-
-            const num =
-                parseFloat(
-                    normalized.replace(
-                        /^sin\b/,
-                        ""
-                    ).trim()
-                );
-
-            if (!isNaN(num)) {
-
-                const answer =
-                    calculateTrig(
-                        "sin",
-                        num
-                    );
-
-                const formatted =
-                    formatNumber(answer);
-
-                showExpression(
-                    "sin(" + num + ")"
-                );
-
-                resultBox.innerText =
-                    formatted;
-
-                historyList.push(
-                    "sin(" +
-                    num +
-                    ") = " +
-                    formatted
-                );
-
-                saveHistory();
-
-                speak(
-                    "The answer is " +
-                    formatted
-                );
-
-                return;
-            }
-        }
-
-        // ---------------------------------------------------------
-        // COS
-        // ---------------------------------------------------------
-
-        if (
-            normalized.match(/^cos\b/)
-        ) {
-
-            const num =
-                parseFloat(
-                    normalized.replace(
-                        /^cos\b/,
-                        ""
-                    ).trim()
-                );
-
-            if (!isNaN(num)) {
-
-                const answer =
-                    calculateTrig(
-                        "cos",
-                        num
-                    );
-
-                const formatted =
-                    formatNumber(answer);
-
-                showExpression(
-                    "cos(" + num + ")"
-                );
-
-                resultBox.innerText =
-                    formatted;
-
-                historyList.push(
-                    "cos(" +
-                    num +
-                    ") = " +
-                    formatted
-                );
-
-                saveHistory();
-
-                speak(
-                    "The answer is " +
-                    formatted
-                );
-
-                return;
-            }
-        }
-
-        // ---------------------------------------------------------
-        // TAN
-        // ---------------------------------------------------------
-
-        if (
-            normalized.match(/^tan\b/)
-        ) {
-
-            const num =
-                parseFloat(
-                    normalized.replace(
-                        /^tan\b/,
-                        ""
-                    ).trim()
-                );
-
-            if (!isNaN(num)) {
-
-                const answer =
-                    calculateTrig(
-                        "tan",
-                        num
-                    );
-
-                const formatted =
-                    formatNumber(answer);
-
-                showExpression(
-                    "tan(" + num + ")"
-                );
-
-                resultBox.innerText =
-                    formatted;
-
-                historyList.push(
-                    "tan(" +
-                    num +
-                    ") = " +
-                    formatted
-                );
-
-                saveHistory();
-
-                speak(
-                    "The answer is " +
-                    formatted
-                );
-
-                return;
-            }
-        }
-
-        // ---------------------------------------------------------
-        // LOG
-        // ---------------------------------------------------------
-
-        if (
-            normalized.match(/^log\b/)
-        ) {
-
-            const num =
-                parseFloat(
-                    normalized.replace(
-                        /^log\b/,
-                        ""
-                    ).trim()
-                );
-
-            if (!isNaN(num)) {
-
-                const answer =
-                    Math.log10(num);
-
-                const formatted =
-                    formatNumber(answer);
-
-                showExpression(
-                    "log(" + num + ")"
-                );
-
-                resultBox.innerText =
-                    formatted;
-
-                historyList.push(
-                    "log(" +
-                    num +
-                    ") = " +
-                    formatted
-                );
-
-                saveHistory();
-
-                speak(
-                    "The answer is " +
-                    formatted
-                );
-
-                return;
-            }
-        }
-
-        // ---------------------------------------------------------
-        // LN
-        // ---------------------------------------------------------
-
-        if (
-            normalized.match(/^ln\b/)
-        ) {
-
-            const num =
-                parseFloat(
-                    normalized.replace(
-                        /^ln\b/,
-                        ""
-                    ).trim()
-                );
-
-            if (!isNaN(num)) {
-
-                const answer =
-                    Math.log(num);
-
-                const formatted =
-                    formatNumber(answer);
-
-                showExpression(
-                    "ln(" + num + ")"
-                );
-
-                resultBox.innerText =
-                    formatted;
-
-                historyList.push(
-                    "ln(" +
-                    num +
-                    ") = " +
-                    formatted
-                );
-
-                saveHistory();
-
-                speak(
-                    "The answer is " +
-                    formatted
-                );
-
-                return;
-            }
-        }
-
-        // ---------------------------------------------------------
-        // SQRT
-        // ---------------------------------------------------------
-
-        if (
-            normalized.match(/^sqrt\b/) ||
-            normalized.includes("square root")
-        ) {
-
-            let num;
-
-            if (normalized.includes("square root")) {
-
-                num =
-                    parseFloat(
-                        normalized.replace(
-                            /square root/,
-                            ""
-                        ).trim()
-                    );
-
-            } else {
-
-                num =
-                    parseFloat(
-                        normalized.replace(
-                            /^sqrt\b/,
-                            ""
-                        ).trim()
-                    );
-            }
-
-            if (!isNaN(num)) {
-
-                const answer =
-                    Math.sqrt(num);
-
-                const formatted =
-                    formatNumber(answer);
-
-                showExpression(
-                    "√(" + num + ")"
-                );
-
-                resultBox.innerText =
-                    formatted;
-
-                historyList.push(
-                    "√(" +
-                    num +
-                    ") = " +
-                    formatted
-                );
-
-                saveHistory();
-
-                speak(
-                    "The answer is " +
-                    formatted
-                );
-
-                return;
-            }
-        }
+        // =========================================================
+// TRIG + LOG + LN + SQRT VOICE COMMANDS
+// =========================================================
+
+if (/^sin\s+-?\d+(?:\.\d+)?$/.test(normalized)) {
+
+    let num = parseFloat(
+        normalized.replace("sin", "").trim()
+    );
+
+    if (!isNaN(num)) {
+
+        let answer = Math.sin(num * Math.PI / 180);
+        document.getElementById("expression").innerText =
+        "sin(" + num + ")";
+
+        updateResult(
+            answer.toFixed(decimalPlaces)
+        );
+
+        resultOnlyVoice();
+
+        return;
+    }
+}
+
+if (/^cos\s+-?\d+(?:\.\d+)?$/.test(normalized)) {
+
+    let num = parseFloat(
+        normalized.replace("cos", "").trim()
+    );
+
+    if (!isNaN(num)) {
+
+        let answer = Math.cos(num * Math.PI / 180);
+        document.getElementById("expression").innerText =
+            "cos(" + num + ")";
+
+        updateResult(
+            answer.toFixed(decimalPlaces)
+        );
+
+        resultOnlyVoice();
+
+        return;
+    }
+}
+
+if (/^tan\s+-?\d+(?:\.\d+)?$/.test(normalized)) {
+
+    let num = parseFloat(
+        normalized.replace("tan", "").trim()
+    );
+
+    if (!isNaN(num)) {
+
+        let answer = Math.tan(num * Math.PI / 180);
+        document.getElementById("expression").innerText =
+            "tan(" + num + ")";
+
+        updateResult(
+            answer.toFixed(decimalPlaces)
+        );
+
+        resultOnlyVoice();
+
+        return;
+    }
+}
+
+if (/^log\s+-?\d+(?:\.\d+)?$/.test(normalized)) {
+
+    let num = parseFloat(
+        normalized.replace("log", "").trim()
+    );
+
+    if (!isNaN(num)) {
+
+        let answer = Math.log10(num);
+        document.getElementById("expression").innerText =
+            "log(" + num + ")";
+
+        updateResult(
+            answer.toFixed(decimalPlaces)
+        );
+
+        resultOnlyVoice();
+
+        return;
+    }
+}
+
+if (/^ln\s+-?\d+(?:\.\d+)?$/.test(normalized)) {
+
+    let num = parseFloat(
+        normalized.replace("ln", "").trim()
+    );
+
+    if (!isNaN(num)) {
+
+        let answer = Math.log(num);
+        document.getElementById("expression").innerText =
+            "ln(" + num + ")";
+
+        updateResult(
+            answer.toFixed(decimalPlaces)
+        );
+
+        resultOnlyVoice();
+
+        return;
+    }
+}
+
+if (/^(square root|sqrt)\s+\d+(?:\.\d+)?$/.test(normalized)) {
+
+    let num = parseFloat(
+        normalized
+            .replace("square root", "")
+            .replace("sqrt", "")
+            .trim()
+    );
+
+    if (!isNaN(num)) {
+
+        let answer = Math.sqrt(num);
+          document.getElementById("expression").innerText =
+            "√(" + num + ")";
+
+        updateResult(
+            answer.toFixed(decimalPlaces)
+        );
+
+        resultOnlyVoice();
+
+        return;
+    }
+}
 
         // =========================================================
         // NORMAL ARITHMETIC CALCULATOR
         // =========================================================
 
-        let arithmeticText =
-            normalized;
+        function factorialOf(n) {
+            n = parseInt(n);
+            if (n < 0 || n > 170) return "Infinity";
+            let f = 1;
+            for (let i = 2; i <= n; i++) f *= i;
+            return String(f);
+        }
 
-        arithmeticText =
-            arithmeticText
-                .replace(/\bplus\b/g, "+")
-                .replace(/\bminus\b/g, "-")
-                .replace(/\btimes\b/g, "*")
-                .replace(/\bmultiplied by\b/g, "*")
-                .replace(/\bmultiply by\b/g, "*")
-                .replace(/\binto\b/g, "*")
-                .replace(/\bdivided by\b/g, "/")
-                .replace(/\bdivide by\b/g, "/");
+        let arithmeticText = normalized
+            .replace(/[.?,]+$/g, "")
+            .replace(/\bfactorial(?:\s+of)?\s+(\d+)/g, function (m, n) {
+                return factorialOf(n);
+            })
+            .replace(/(\d+)\s*(?:factorial|!)/g, function (m, n) {
+                return factorialOf(n);
+            })
+            .replace(/(\d+(?:\.\d+)?)\s+squared\b/g, "$1**2")
+            .replace(/(\d+(?:\.\d+)?)\s+cubed\b/g, "$1**3")
+            .replace(
+                /\b(?:to the power of|to the power|raised to the power of|raised to the power|raised to|power of|power|caret)\b|\^/g,
+                "**"
+            )
+            .replace(/\bx\b/g, "*")
+            .replace(/\bsin\s+(-?\d+(?:\.\d+)?)/g, "Math.sin($1*Math.PI/180)")
+            .replace(/\bcos\s+(-?\d+(?:\.\d+)?)/g, "Math.cos($1*Math.PI/180)")
+            .replace(/\btan\s+(-?\d+(?:\.\d+)?)/g, "Math.tan($1*Math.PI/180)")
+            .replace(/\blog\s+(-?\d+(?:\.\d+)?)/g, "Math.log10($1)")
+            .replace(/\bln\s+(-?\d+(?:\.\d+)?)/g, "Math.log($1)")
+            .replace(/\b(?:square root|sqrt)\s+(\d+(?:\.\d+)?)/g, "Math.sqrt($1)")
+            .trim();
 
-        // Remove calculator-only words
-        arithmeticText =
-            arithmeticText
-                .replace(/\bcalculate\b/g, "")
-                .replace(/\banswer\b/g, "")
-                .replace(/\bplease\b/g, "")
-                .trim();
-
-        // Keep only arithmetic-compatible characters
-        const safeExpression =
-            arithmeticText.replace(
-                /[^0-9+\-*/().%\s]/g,
-                ""
-            );
+        // Safety check: only numbers, operators and our own Math functions allowed
+        const safeCheck = arithmeticText
+            .replace(/Math\.(sin|cos|tan|log10|log|sqrt)\(/g, "(")
+            .replace(/Math\.PI/g, "3");
 
         if (
-            safeExpression &&
-            /[0-9]/.test(safeExpression)
+            arithmeticText &&
+            /\d/.test(arithmeticText) &&
+            /^[\d\s+\-*\/().%]+$/.test(safeCheck)
         ) {
-
             try {
+                const value = Function(
+                    '"use strict"; return (' + arithmeticText + ');'
+                )();
 
-                const answer =
-                    eval(
-                        safeExpression
-                            .replace(/%/g, "/100")
-                    );
+                if (typeof value === "number" && Number.isFinite(value)) {
 
-                if (
-                    typeof answer === "number" &&
-                    Number.isFinite(answer)
-                ) {
-
-                    let displayAnswer;
-
-                    if (
-                        Number.isInteger(answer)
-                    ) {
-                        displayAnswer =
-                            String(answer);
-                    } else {
-                        displayAnswer =
-                            formatNumber(answer);
-                    }
+                    const shown = Number.isInteger(value)
+                        ? String(value)
+                        : value.toFixed(decimalPlaces);
 
                     showExpression(
-                        safeExpression
-                            .replace(/\s+/g, "")
+                        normalized
+                            .replace(/to the power of|to the power|raised to the power of|raised to the power|raised to|power of|power|caret|\*\*/g, "^")
+                            .replace(/\*/g, "\u00d7")
+                            .replace(/\//g, "\u00f7")
                     );
 
-                    resultBox.innerText =
-                        displayAnswer;
+                    updateResult(shown);
 
-                    historyList.push(
-                        safeExpression
-                            .replace(/\s+/g, "") +
-                        " = " +
-                        displayAnswer
-                    );
-
-                    saveHistory();
-
-                    speak(
-                        "The answer is " +
-                        displayAnswer
-                    );
+                    resultOnlyVoice();
 
                     return;
                 }
-
-            } catch (error) {
-                // Continue to final error message below
+            } catch (err) {
+                // incomplete expression such as "20 +" -> fall through
             }
         }
-
         // =========================================================
         // NOTHING MATCHED
         // =========================================================
@@ -3440,3 +3325,102 @@ function processVoiceCommand(text) {
         resultBox.innerText =
             "Command not understood";
     }
+function factorialValue() {
+    playButtonSound();
+
+
+    let num = parseInt(expression);
+
+    if (isNaN(num)) {
+        document.getElementById("result").innerText = "Error";
+        return;
+    }
+
+    let fact = 1;
+
+    for (let i = 1; i <= num; i++) {
+        fact *= i;
+    }
+
+    document.getElementById("result").innerText = fact;
+}
+function factorialValue() {
+    playButtonSound();
+
+    let num = parseInt(expression);
+
+    if (isNaN(num)) {
+        document.getElementById("result").innerText = "Error";
+        return;
+    }
+
+    let fact = 1;
+
+    for (let i = 1; i <= num; i++) {
+        fact *= i;
+    }
+
+    document.getElementById("result").innerText = fact;
+}
+
+function powerMode() {
+    playButtonSound();
+
+    expression += "**";
+    document.getElementById("expression").innerText = expression;
+}
+
+
+
+// ======================
+// SETTINGS TOGGLES
+// ======================
+
+let voiceInputEnabled = true;
+let voiceOutputEnabled = true;
+
+
+window.addEventListener("load", () => {
+
+    const voiceInput = document.getElementById("voiceInputToggle");
+    const voiceOutput = document.getElementById("voiceOutputToggle");
+
+    if (voiceInput) {
+        voiceInput.addEventListener("change", function () {
+            voiceInputEnabled = this.value === "ON";
+        });
+    }
+
+    if (voiceOutput) {
+        voiceOutput.addEventListener("change", function () {
+            voiceOutputEnabled = this.value === "ON";
+        });
+    }
+
+});
+document.addEventListener("DOMContentLoaded", () => {
+
+    const soundToggle =
+        document.getElementById(
+            "buttonSoundToggle"
+        );
+
+    if (soundToggle) {
+
+        soundToggle.addEventListener(
+            "change",
+            function () {
+
+                buttonSoundEnabled =
+                    this.value === "ON";
+
+                console.log(
+                    "Button Sound:",
+                    buttonSoundEnabled
+                );
+
+            }
+        );
+    }
+
+});
