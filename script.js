@@ -248,6 +248,7 @@ function showFormulaSection() {
     document.getElementById("formulaSection").style.display = "block";
     document.getElementById("currencySection").style.display = "none";
     document.getElementById("binarySection").style.display = "none";
+    setPanelBackButton(true);
 }
 
 function showCurrencySection() {
@@ -255,6 +256,7 @@ function showCurrencySection() {
     document.getElementById("formulaSection").style.display = "none";
     document.getElementById("currencySection").style.display = "block";
     document.getElementById("binarySection").style.display = "none";
+    setPanelBackButton(true);
 }
 
 function showBinarySection() {
@@ -262,8 +264,26 @@ function showBinarySection() {
     document.getElementById("formulaSection").style.display = "none";
     document.getElementById("currencySection").style.display = "none";
     document.getElementById("binarySection").style.display = "block";
+    setPanelBackButton(true);
 }
+
+function setPanelBackButton(show) {
+    const btn = document.getElementById("panelBackBtn");
+    if (btn) {
+        btn.style.display = show ? "block" : "none";
+    }
+}
+
+function goBackRightPanel() {
+    if (typeof playButtonSound === "function") {
+        playButtonSound();
+    }
+    resetRightPanel();
+}
+
 function resetRightPanel() {
+
+    setPanelBackButton(false);
 
     // Show all three main sections
     document.getElementById("formulaSection").style.display = "block";
@@ -568,40 +588,45 @@ shapeSelect.addEventListener("change", function () {
     document.getElementById("formulaInputs").style.display = "block";
 
     const shape = this.value;
+    const formula = document.getElementById("formulaSelect").value;
 
-    const value2 =
-        document.getElementById("value2");
-    const value3 =
-        document.getElementById("value3");
+    const value1 = document.getElementById("value1");
+    const value2 = document.getElementById("value2");
+    const value3 = document.getElementById("value3");
 
-    if (
-        shape === "Rectangle" ||
+    // Labels for each input, so it is clear what to type where
+    const labels = {
+        "Area": {
+            "Circle": ["Radius"],
+            "Square": ["Side"],
+            "Rectangle": ["Length", "Width"],
+            "Triangle": ["Base", "Height"],
+            "Parallelogram": ["Base", "Height"]
+        },
+        "Volume": {
+            "Cube": ["Side"],
+            "Cuboid": ["Length", "Width", "Height"],
+            "Cylinder": ["Radius", "Height"],
+            "Cone": ["Radius", "Height"],
+            "Sphere": ["Radius"]
+        },
+        "Perimeter": {
+            "Circle": ["Radius"],
+            "Square": ["Side"],
+            "Rectangle": ["Length", "Width"],
+            "Triangle": ["Side 1", "Side 2", "Side 3"],
+            "Parallelogram": ["Base", "Side"]
+        }
+    };
 
-        shape === "Parallelogram" ||
-        shape === "Cylinder" ||
-        shape === "Cone"
-    ) {
-        value2.style.display = "block";
-        value3.style.display = "none";
-    }
-    else if (shape === "Triangle") {
+    const fields = (labels[formula] && labels[formula][shape]) || ["Enter Value"];
 
-        value2.style.display = "block";
-        value3.style.display = "block";
-    }
+    value1.placeholder = fields[0];
+    value2.placeholder = fields[1] || "Second Value";
+    value3.placeholder = fields[2] || "Third Value";
 
-    else if (shape === "Cuboid") {
-
-        value2.style.display = "block";
-        value3.style.display = "block";
-
-    }
-
-    else {
-
-        value2.style.display = "none";
-        value3.style.display = "none";
-    }
+    value2.style.display = fields.length >= 2 ? "block" : "none";
+    value3.style.display = fields.length >= 3 ? "block" : "none";
 });
 function calculateFormula() {
 
@@ -1095,6 +1120,27 @@ function calculateFormula() {
             " → " +
             result.toFixed(2);
     }
+    let invalidSize = false;
+
+    if (formula === "Area" || formula === "Volume" || formula === "Perimeter") {
+
+        // lengths must be positive - look only at the boxes that are showing
+        ["value1", "value2", "value3"].forEach(function (id) {
+            const box = document.getElementById(id);
+
+            if (box && getComputedStyle(box).display !== "none") {
+                const v = parseFloat(box.value);
+
+                if (!isNaN(v) && v <= 0) invalidSize = true;
+            }
+        });
+    }
+
+    if (!isFinite(result) || invalidSize) {
+        document.getElementById("result").innerText = "Enter valid values";
+        return;
+    }
+
     document.getElementById("result").innerText =
         result.toFixed(2);
     if (historyText !== "") {
@@ -1115,6 +1161,146 @@ function calculateFormula() {
     resetRightPanel();
 }
 
+// =============================================================
+// LIVE CURRENCY RATES (Frankfurter API - European Central Bank data)
+// Falls back to cached rates, then to built-in approximate rates.
+// =============================================================
+
+// Approximate fallback: how many INR one unit of each currency is worth
+const FALLBACK_RATES = { USD: 85, EUR: 98, GBP: 115 };
+const RATE_CACHE_KEY = "echoCurrencyRates";
+const RATE_MAX_AGE_MS = 6 * 60 * 60 * 1000;   // refresh after 6 hours
+
+let currencyRates = Object.assign({}, FALLBACK_RATES);
+let currencyRateStatus = { live: false, date: null };
+
+function updateRateInfo() {
+
+    const el = document.getElementById("rateInfo");
+    if (!el) return;
+
+    if (currencyRateStatus.live) {
+        el.innerText =
+            (currencyRateStatus.saved ? "Saved rates (ECB) \u2022 " : "Live rates (ECB) \u2022 ") +
+            currencyRateStatus.date;
+    }
+    else {
+        el.innerText = "Offline rates (approximate)";
+    }
+}
+
+async function fetchJson(url) {
+
+    const controller = new AbortController();
+    const timer = setTimeout(function () { controller.abort(); }, 6000);
+
+    try {
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return await res.json();
+    }
+    finally {
+        clearTimeout(timer);
+    }
+}
+
+// INR value of one unit of `code`
+async function fetchInrRate(code) {
+
+    try {
+        const d = await fetchJson(
+            "https://api.frankfurter.dev/v2/rate/" + code + "/INR"
+        );
+        if (d && typeof d.rate === "number" && d.rate > 0) {
+            return { rate: d.rate, date: d.date };
+        }
+    }
+    catch (e) { /* try the older endpoint below */ }
+
+    const d2 = await fetchJson(
+        "https://api.frankfurter.app/latest?from=" + code + "&to=INR"
+    );
+    if (d2 && d2.rates && typeof d2.rates.INR === "number" && d2.rates.INR > 0) {
+        return { rate: d2.rates.INR, date: d2.date };
+    }
+
+    throw new Error("No rate for " + code);
+}
+
+async function loadCurrencyRates() {
+
+    // 1) use a fresh cached copy if we have one
+    let cached = null;
+    try {
+        cached = JSON.parse(localStorage.getItem(RATE_CACHE_KEY));
+    }
+    catch (e) { cached = null; }
+
+    if (cached && cached.rates && Date.now() - cached.fetchedAt < RATE_MAX_AGE_MS) {
+        currencyRates = Object.assign({}, FALLBACK_RATES, cached.rates);
+        currencyRateStatus = { live: true, date: cached.date };
+        updateRateInfo();
+        return;
+    }
+
+    // 2) otherwise ask the API
+    try {
+        const codes = ["USD", "EUR", "GBP"];
+        const results = await Promise.all(codes.map(fetchInrRate));
+
+        const rates = {};
+        let date = null;
+
+        codes.forEach(function (code, i) {
+            rates[code] = results[i].rate;
+            date = results[i].date || date;
+        });
+
+        currencyRates = Object.assign({}, FALLBACK_RATES, rates);
+        currencyRateStatus = { live: true, date: date };
+
+        try {
+            localStorage.setItem(RATE_CACHE_KEY, JSON.stringify({
+                rates: rates, date: date, fetchedAt: Date.now()
+            }));
+        }
+        catch (e) { /* storage full or blocked - ignore */ }
+    }
+    catch (e) {
+        // 3) API unreachable: use stale cache if any, else the built-in rates
+        if (cached && cached.rates) {
+            currencyRates = Object.assign({}, FALLBACK_RATES, cached.rates);
+            currencyRateStatus = { live: true, saved: true, date: cached.date };
+        }
+        else {
+            currencyRates = Object.assign({}, FALLBACK_RATES);
+            currencyRateStatus = { live: false, date: null };
+        }
+    }
+
+    updateRateInfo();
+}
+
+loadCurrencyRates();
+
+const CURRENCY_NAMES = {
+    INR: ["Indian Rupee", "Indian Rupees"],
+    USD: ["US Dollar", "US Dollars"],
+    EUR: ["Euro", "Euros"],
+    GBP: ["British Pound", "British Pounds"]
+};
+
+function currencyName(code, amount) {
+
+    const names = CURRENCY_NAMES[code];
+    if (!names) return code;
+
+    return Number(amount).toFixed(2) === "1.00" ? names[0] : names[1];
+}
+
+// what Echoo says out loud for the last currency result
+let currencySpeech = null;
+
 function convertCurrency() {
 
     let amount =
@@ -1123,34 +1309,54 @@ function convertCurrency() {
     let type =
         document.getElementById("currencySelect").value;
 
+    if (isNaN(amount)) {
+        document.getElementById("result").innerText = "Enter Amount";
+        return;
+    }
+
     let result = 0;
 
-    if (type === "INR → USD") {
-        result = amount / 85;
+    const parts = type.split(" \u2192 ");
+    const from = parts[0];
+    const to = parts[1];
+
+    if (from === "INR" && currencyRates[to]) {
+        result = amount / currencyRates[to];
     }
-    else if (type === "USD → INR") {
-        result = amount * 85;
-    }
-    else if (type === "INR → EUR") {
-        result = amount / 98;
-    }
-    else if (type === "EUR → INR") {
-        result = amount * 98;
-    }
-    else if (type === "INR → GBP") {
-        result = amount / 115;
-    }
-    else if (type === "GBP → INR") {
-        result = amount * 115;
+    else if (to === "INR" && currencyRates[from]) {
+        result = amount * currencyRates[from];
     }
 
-    document.getElementById("result").innerText =
-        result.toFixed(2);
+    const shown = result.toFixed(2);
+    const toName = currencyName(to, result);
+    const fromName = currencyName(from, amount);
+
+    const resultBox = document.getElementById("result");
+    resultBox.innerHTML = "";
+
+    const numberLine = document.createElement("div");
+    numberLine.innerText = shown + " " + to;
+
+    const nameLine = document.createElement("div");
+    nameLine.className = "result-currency-name";
+    nameLine.innerText = toName;
+
+    resultBox.appendChild(numberLine);
+    resultBox.appendChild(nameLine);
+
+    currencySpeech = {
+        display: resultBox.innerText,
+        speech: shown + " " + toName
+    };
+
+    const expressionBox = document.getElementById("expression");
+    if (expressionBox) {
+        expressionBox.innerText =
+            amount + " " + from + " (" + fromName + ") \u2192 " + to;
+    }
 
     historyList.push(
-        type + ": " +
-        amount + " = " +
-        result.toFixed(2)
+        amount + " " + from + " = " + shown + " " + to
     );
     saveHistory();
     resetRightPanel();
@@ -1237,7 +1443,12 @@ function clearHistory() {
 // Close Settings Page
 function closeSettings() {
 
-    document.getElementById("settingsPage").style.display = "none";
+    const menu = document.getElementById("settingsMenu");
+    if (menu) menu.style.display = "none";
+
+    // older layouts used a separate settings page
+    const page = document.getElementById("settingsPage");
+    if (page) page.style.display = "none";
 
 }
 
@@ -1586,6 +1797,11 @@ function speak(message) {
     function resultOnlyVoice() {
         if (!resultBox) return;
 
+        if (currencySpeech && currencySpeech.display === resultBox.innerText) {
+            speak(currencySpeech.speech);
+            return;
+        }
+
         speak(resultBox.innerText);
     }
 
@@ -1674,6 +1890,8 @@ function speak(message) {
             "echoDecimalPlaces",
             String(value)
         );
+
+        decimalPlaces = value;
 
         const decimalSelect = findDecimalSelect();
 
@@ -2052,6 +2270,16 @@ function speak(message) {
             "ninety": "90"
         };
 
+        // "twenty five" -> 25 (only when actually spoken as words)
+        textForNumbers = textForNumbers.replace(
+            /\b(twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)[\s-]+(one|two|three|four|five|six|seven|eight|nine)\b/g,
+            function (m, tens, ones) {
+                return String(
+                    parseInt(numberWords[tens]) + parseInt(numberWords[ones])
+                );
+            }
+        );
+
         Object.keys(numberWords).forEach(word => {
 
             const pattern =
@@ -2064,273 +2292,371 @@ function speak(message) {
                 );
         });
 
-        // "twenty five" -> "20 5" -> "25"
-        textForNumbers = textForNumbers.replace(
-            /\b([2-9]0)\s+([1-9])\b/g,
-            function (m, tens, ones) {
-                return String(parseInt(tens) + parseInt(ones));
-            }
-        );
+        // "1 hundred" -> 100, "2 thousand 500" -> 2500, "1 lakh" -> 100000
+        [["hundred", 100], ["thousand", 1000], ["lakh", 100000], ["million", 1000000]]
+            .forEach(function (unit) {
+                textForNumbers = textForNumbers.replace(
+                    new RegExp("\\b(\\d+)\\s+" + unit[0] + "(?:\\s+(?:and\\s+)?(\\d+)\\b)?", "g"),
+                    function (m, n, rest) {
+                        return String(
+                            parseInt(n) * unit[1] + (rest ? parseInt(rest) : 0)
+                        );
+                    }
+                );
+            });
 
         // =========================================================
-        // CURRENCY CONVERTER
+        // CURRENCY CONVERTER  (INR <-> USD / EUR / GBP)
         // =========================================================
 
-       // =========================================================
-// CURRENCY CONVERTER
-// =========================================================
-const currencyNumbers = getNumbers(textForNumbers);
+        {
+            let currencyText = textForNumbers
+                .replace(/([$€£₹])\s*(\d[\d,]*(?:\.\d+)?)/g, function (m, sym, num) {
+                    const names = { "$": "dollars", "€": "euros", "£": "pounds", "₹": "rupees" };
+                    return num + " " + names[sym];
+                })
+                .replace(/\$/g, " dollars ")
+                .replace(/€/g, " euros ")
+                .replace(/£/g, " pounds ")
+                .replace(/₹/g, " rupees ")
+                .replace(/(\d),(\d{3})/g, "$1$2")
+                .replace(/(\d),(\d{3})/g, "$1$2");
 
-const isINR =
-    textForNumbers.includes("rupee") ||
-    textForNumbers.includes("rupees") ||
-    textForNumbers.includes("inr") ||
-    textForNumbers.includes("indian rupee") ||
-    textForNumbers.includes("rs");
+            const currencyPatterns = [
+                ["INR", /\b(?:indian rupees?|rupees?|inr|rs)\b\.?/g],
+                ["USD", /\b(?:us dollars?|dollars?|usd|bucks?)\b/g],
+                ["EUR", /\b(?:euros?|eur)\b/g],
+                ["GBP", /\b(?:british pounds?|pounds?|gbp|sterling|quid)\b/g]
+            ];
 
-const isUSD =
-    textForNumbers.includes("dollar") ||
-    textForNumbers.includes("dollars") ||
-    textForNumbers.includes("usd");
+            const mentions = [];
 
-const isEUR =
-    textForNumbers.includes("euro") ||
-    textForNumbers.includes("euros") ||
-    textForNumbers.includes("eur");
-
-const isGBP =
-    textForNumbers.includes("pound") ||
-    textForNumbers.includes("pounds") ||
-    textForNumbers.includes("gbp") ||
-    textForNumbers.includes("sterling");
-
-if (currencyNumbers.length >= 1) {
-
-    const amount = currencyNumbers[0];
-
-    let conversion = "";
-
-    // INR ↔ USD
-    if (isINR && isUSD) {
-
-        if (
-            textForNumbers.includes("rs") ||
-            textForNumbers.includes("rupee") ||
-            textForNumbers.includes("inr")
-        ) {
-
-            conversion = "INR → USD";
-
-        } else {
-
-            conversion = "USD → INR";
-
-        }
-    }
-
-    // INR ↔ EUR
-    else if (isINR && isEUR) {
-
-        if (
-            textForNumbers.includes("euro") ||
-            textForNumbers.includes("euros") ||
-            textForNumbers.includes("eur")
-        ) {
-
-            conversion = "EUR → INR";
-
-        } else {
-
-            conversion = "INR → EUR";
-
-        }
-    }
-
-    // INR ↔ GBP
-    else if (isINR && isGBP) {
-
-        if (
-            textForNumbers.includes("pound") ||
-            textForNumbers.includes("pounds") ||
-            textForNumbers.includes("gbp")
-        ) {
-
-            conversion = "GBP → INR";
-
-        } else {
-
-            conversion = "INR → GBP";
-
-        }
-    }
-
-    if (conversion !== "") {
-
-        clearExpression();
-
-        showCurrencySection();
-
-        selectDropdown(
-            currencySelectEl,
-            conversion
-        );
-
-        if (currencyAmountEl) {
-            currencyAmountEl.value = amount;
-        }
-
-        if (typeof convertCurrency === "function") {
-            convertCurrency();
-        }
-
-        resultOnlyVoice();
-
-        return;
-    }
-}
-
-        // =========================================================
-        // BINARY / OCTAL / HEXADECIMAL CONVERTER
-        // =========================================================
-
-        let binaryText =
-            textForNumbers
-                .replace(/convert/g, "")
-                .trim();
-
-        let binaryConversion = "";
-
-        if (
-            binaryText.includes("decimal") &&
-            binaryText.includes("binary")
-        ) {
-
-            if (
-                binaryText.includes("to binary") ||
-                binaryText.includes("into binary")
-            ) {
-                binaryConversion = "Decimal → Binary";
-            }
-            else if (
-                binaryText.includes("to decimal") ||
-                binaryText.includes("into decimal")
-            ) {
-                binaryConversion = "Binary → Decimal";
-            }
-        }
-
-        if (
-            binaryText.includes("decimal") &&
-            binaryText.includes("octal")
-        ) {
-
-            if (
-                binaryText.includes("to octal") ||
-                binaryText.includes("into octal")
-            ) {
-                binaryConversion = "Decimal → Octal";
-            }
-            else if (
-                binaryText.includes("to decimal") ||
-                binaryText.includes("into decimal")
-            ) {
-                binaryConversion = "Octal → Decimal";
-            }
-        }
-
-        if (
-            binaryText.includes("decimal") &&
-            (
-                binaryText.includes("hexadecimal") ||
-                binaryText.includes("hex")
-            )
-        ) {
-
-            if (
-                binaryText.includes("to hexadecimal") ||
-                binaryText.includes("into hexadecimal") ||
-                binaryText.includes("to hex") ||
-                binaryText.includes("into hex")
-            ) {
-                binaryConversion = "Decimal → Hexadecimal";
-            }
-            else if (
-                binaryText.includes("to decimal") ||
-                binaryText.includes("into decimal")
-            ) {
-                binaryConversion = "Hexadecimal → Decimal";
-            }
-        }
-
-        // Binary of 25
-        if (
-            binaryConversion === "" &&
-            binaryText.includes("binary") &&
-            !binaryText.includes("to decimal")
-        ) {
-            binaryConversion = "Decimal → Binary";
-        }
-
-        // Decimal of 1010 = Binary → Decimal
-        if (
-            binaryConversion === "" &&
-            binaryText.match(/\bdecimal\s+of\b/)
-        ) {
-            binaryConversion = "Binary → Decimal";
-        }
-
-        if (
-            binaryConversion !== ""
-        ) {
-
-            let binaryValue = "";
-
-            if (
-                binaryConversion === "Hexadecimal → Decimal"
-            ) {
-                binaryValue =
-                    getHexOrBinaryValue(binaryText);
-            }
-            else if (
-                binaryConversion === "Binary → Decimal"
-            ) {
-                const possible =
-                    binaryText.match(/\b[01]+\b/g);
-
-                if (possible) {
-                    binaryValue = possible[possible.length - 1];
+            currencyPatterns.forEach(function (entry) {
+                const re = new RegExp(entry[1].source, "g");
+                let m;
+                while ((m = re.exec(currencyText)) !== null) {
+                    mentions.push({
+                        code: entry[0],
+                        index: m.index,
+                        end: m.index + m[0].length
+                    });
                 }
-            }
-            else {
-                const nums =
-                    getNumbers(binaryText);
+            });
 
-                if (nums.length > 0) {
-                    binaryValue = nums[0];
+            mentions.sort(function (a, b) { return a.index - b.index; });
+
+            const distinctCodes = [];
+            mentions.forEach(function (m) {
+                if (distinctCodes.indexOf(m.code) === -1) distinctCodes.push(m.code);
+            });
+
+            const amountMatch = currencyText.match(/\d+(?:\.\d+)?/);
+
+            if (distinctCodes.length >= 2 && amountMatch) {
+
+                const amount = parseFloat(amountMatch[0]);
+                const amountEnd = amountMatch.index + amountMatch[0].length;
+
+                let source = null;
+                let target = null;
+
+                mentions.forEach(function (m) {
+                    const before = currencyText.substring(0, m.index);
+
+                    if (/\bfrom\s+(?:[a-z]+\s+)?$/.test(before)) {
+                        if (!source) source = m.code;
+                    }
+                    else if (/\b(?:to|into|in|for)\s+(?:[a-z]+\s+)?$/.test(before)) {
+                        if (!target) target = m.code;
+                    }
+                });
+
+                if (!source) {
+                    // currency written right after the amount: "100 dollars"
+                    const after = mentions.find(function (m) {
+                        return m.index >= amountEnd &&
+                            currencyText.substring(amountEnd, m.index).trim() === "" &&
+                            m.code !== target;
+                    });
+
+                    if (after) {
+                        source = after.code;
+                    }
+                    else {
+                        // currency written right before the amount: "rupees 100"
+                        const beforeAmount = mentions.find(function (m) {
+                            return m.end <= amountMatch.index &&
+                                currencyText.substring(m.end, amountMatch.index).trim() === "" &&
+                                m.code !== target;
+                        });
+
+                        if (beforeAmount) source = beforeAmount.code;
+                    }
                 }
-            }
 
-            if (binaryValue !== "") {
+                if (!source) {
+                    source = mentions.find(function (m) {
+                        return m.code !== target;
+                    }).code;
+                }
+
+                if (!target || target === source) {
+                    target = distinctCodes.find(function (c) {
+                        return c !== source;
+                    });
+                }
+
+                const conversion = source + " → " + target;
+
+                const supported = [
+                    "INR → USD", "USD → INR",
+                    "INR → EUR", "EUR → INR",
+                    "INR → GBP", "GBP → INR"
+                ];
+
+                if (supported.indexOf(conversion) !== -1) {
+
+                    clearExpression();
+
+                    showCurrencySection();
+
+                    selectDropdown(currencySelectEl, conversion);
+
+                    if (currencyAmountEl) {
+                        currencyAmountEl.value = amount;
+                    }
+
+                    convertCurrency();
+
+                    resultOnlyVoice();
+
+                    return;
+                }
 
                 clearExpression();
 
-                showBinarySection();
+                resultBox.innerText =
+                    "Only INR conversions are supported";
 
-                selectDropdown(
-                    binarySelectEl,
-                    binaryConversion
-                 );
-
-                binaryValueEl.value =
-                    binaryValue;
-
-                if (typeof convertBinary === "function") {
-                    convertBinary();
-                }
-
-                resultOnlyVoice();
+                speak("Only rupee conversions are supported");
 
                 return;
+            }
+        }
+
+        // =========================================================
+        // BINARY / OCTAL / HEXADECIMAL / DECIMAL CONVERTER
+        // =========================================================
+
+        {
+            const baseByWord = {
+                "binary": 2,
+                "octal": 8,
+                "decimal": 10,
+                "hexadecimal": 16,
+                "hex": 16
+            };
+
+            const baseNames = {
+                2: "Binary",
+                8: "Octal",
+                10: "Decimal",
+                16: "Hexadecimal"
+            };
+
+            const digitTests = {
+                2: /^[01]+$/,
+                8: /^[0-7]+$/,
+                10: /^[0-9]+$/,
+                16: /^[0-9a-f]+$/
+            };
+
+            const baseText = textForNumbers;
+
+            const baseMentions = [];
+            const baseRe = /\b(binary|octal|decimal|hexadecimal|hex)\b/g;
+            let baseMatch;
+
+            while ((baseMatch = baseRe.exec(baseText)) !== null) {
+                baseMentions.push({
+                    base: baseByWord[baseMatch[1]],
+                    index: baseMatch.index,
+                    end: baseMatch.index + baseMatch[1].length
+                });
+            }
+
+            if (
+                baseMentions.length > 0 &&
+                !/\bplaces?\b/.test(baseText)
+            ) {
+
+                const stopWords =
+                    /\b(binary|octal|decimal|hexadecimal|hex|convert|change|transform|what|whats|is|the|a|an|number|value|of|from|to|into|in|as|please|equals|equal|base|for|me|it)\b/g;
+
+                let tokens =
+                    baseText
+                        .replace(stopWords, " ")
+                        .match(/\b[0-9a-f]+\b/g) || [];
+
+                const guessSourceBase = function (token) {
+                    if (/[a-f]/.test(token)) return 16;
+                    if (/^[01]+$/.test(token)) return 2;
+                    if (/^[0-7]+$/.test(token)) return 8;
+                    return 10;
+                };
+
+                const flagOf = function (mention) {
+                    const before = baseText.substring(0, mention.index);
+
+                    if (/\bfrom\s+(?:[a-z]+\s+)?$/.test(before)) return "from";
+                    if (/\b(?:to|into|in)\s+(?:[a-z]+\s+)?$/.test(before)) return "to";
+                    if (/\b(?:of|as)\s+$/.test(before)) return "to";
+
+                    return "";
+                };
+
+                let sourceBase = null;
+                let targetBase = null;
+
+                const distinctBases = [];
+                baseMentions.forEach(function (m) {
+                    if (distinctBases.indexOf(m.base) === -1) distinctBases.push(m.base);
+                });
+
+                if (distinctBases.length >= 2) {
+
+                    const first = baseMentions[0];
+                    const second = baseMentions.find(function (m) {
+                        return m.base !== first.base;
+                    });
+
+                    const firstFlag = flagOf(first);
+                    const secondFlag = flagOf(second);
+
+                    if (firstFlag === "to" || secondFlag === "from") {
+                        targetBase = first.base;
+                        sourceBase = second.base;
+                    }
+                    else {
+                        sourceBase = first.base;
+                        targetBase = second.base;
+                    }
+                }
+                else {
+
+                    const only = baseMentions[0];
+                    const flag = flagOf(only);
+
+                    // pick the number first, then decide what it means
+                    const firstToken = tokens.length ? tokens[0] : "";
+
+                    const followedByOf =
+                        /^\s+of\b/.test(baseText.substring(only.end));
+
+                    if (flag === "to" || followedByOf) {
+                        targetBase = only.base;
+                    }
+                    else if (flag === "from") {
+                        sourceBase = only.base;
+                        targetBase = 10;
+                    }
+                    else if (
+                        digitTests[only.base].test(firstToken) &&
+                        only.base !== 10
+                    ) {
+                        // "ff hex", "hex ff", "1010 binary"
+                        sourceBase = only.base;
+                        targetBase = 10;
+                    }
+                    else {
+                        targetBase = only.base;
+                    }
+
+                    if (sourceBase === null) {
+                        sourceBase =
+                            targetBase === 10
+                                ? guessSourceBase(firstToken)
+                                : 10;
+                    }
+                }
+
+                if (sourceBase === targetBase) {
+                    sourceBase = targetBase === 10 ? 2 : 10;
+                }
+
+                // binary digits spoken one by one: "one zero one zero"
+                if (
+                    sourceBase === 2 &&
+                    tokens.length > 1 &&
+                    tokens.every(function (t) { return /^[01]$/.test(t); })
+                ) {
+                    tokens = [tokens.join("")];
+                }
+
+                const validTokens = tokens.filter(function (t) {
+                    return digitTests[sourceBase].test(t);
+                });
+
+                if (tokens.length > 0) {
+
+                    if (validTokens.length === 0) {
+
+                        clearExpression();
+
+                        resultBox.innerText =
+                            "Invalid " + baseNames[sourceBase].toLowerCase() + " number";
+
+                        speak(resultBox.innerText);
+
+                        return;
+                    }
+
+                    const rawValue = validTokens[0];
+
+                    if (sourceBase === 10 || targetBase === 10) {
+
+                        const conversion =
+                            baseNames[sourceBase] + " → " + baseNames[targetBase];
+
+                        clearExpression();
+
+                        showBinarySection();
+
+                        selectDropdown(binarySelectEl, conversion);
+
+                        binaryValueEl.value = rawValue;
+
+                        convertBinary();
+
+                        resultOnlyVoice();
+
+                        return;
+                    }
+
+                    // binary <-> octal <-> hex (no dropdown for these)
+                    const converted =
+                        parseInt(rawValue, sourceBase)
+                            .toString(targetBase)
+                            .toUpperCase();
+
+                    showExpression(
+                        rawValue + " (" + baseNames[sourceBase].toLowerCase() + ") → " +
+                        baseNames[targetBase].toLowerCase()
+                    );
+
+                    updateResult(converted);
+
+                    historyList.push(
+                        baseNames[sourceBase] + " → " + baseNames[targetBase] +
+                        ": " + rawValue + " = " + converted
+                    );
+
+                    saveHistory();
+
+                    resultOnlyVoice();
+
+                    return;
+                }
             }
         }
 
@@ -2346,6 +2672,11 @@ if (currencyNumbers.length >= 1) {
             .trim();
 
         normalized = normalized
+            .replace(/\b(?:a|an|the)\b/g, " ")
+            .replace(/\b(?:open|left)\s+(?:bracket|brackets|parenthesis)\b/g, "(")
+            .replace(/\b(?:close|right)\s+(?:bracket|brackets|parenthesis)\b/g, ")")
+            .replace(/(\d)\s+point\s+(\d)/g, "$1.$2")
+            .replace(/\bover\b/g, "/")
             .replace(/multiplied by/g, "*")
             .replace(/multiply by/g, "*")
             .replace(/times/g, "*")
@@ -2361,11 +2692,228 @@ if (currencyNumbers.length >= 1) {
                 .trim();
 
         // =========================================================
+        // BASIC BUTTON COMMANDS: clear, backspace
+        // =========================================================
+
+        const bareCommand =
+            originalText.replace(/[.!?,]+/g, "").trim();
+
+        if (
+            /^(?:all clear|clear all|clear|clear screen|clear display|clear everything|reset|ac)$/.test(bareCommand)
+        ) {
+            clearDisplay();
+            return;
+        }
+
+        if (
+            /^(?:backspace|back space|delete|erase|delete last|remove last)$/.test(bareCommand)
+        ) {
+            backspace();
+            return;
+        }
+
+        if (
+            /^(?:go back|back|go to menu|back to menu|back to options|close panel|close formula|close currency|close binary)$/.test(bareCommand)
+        ) {
+            goBackRightPanel();
+            return;
+        }
+
+        // =========================================================
+        // PERCENT OF:  "20 percent of 50"  ->  10
+        // =========================================================
+
+        {
+            const percentOf = textForNumbers.match(
+                /(\d+(?:\.\d+)?)\s*(?:percent|%)\s+of\s+(\d+(?:\.\d+)?)/
+            );
+
+            if (percentOf && !/percentage/.test(textForNumbers)) {
+
+                const part = parseFloat(percentOf[1]);
+                const whole = parseFloat(percentOf[2]);
+                const answer = (part / 100) * whole;
+
+                const shown = Number.isInteger(answer)
+                    ? String(answer)
+                    : (Math.round(answer * 1e10) / 1e10).toFixed(decimalPlaces);
+
+                const text = part + "% of " + whole;
+
+                showExpression(text);
+                updateResult(shown);
+
+                historyList.push(text + " = " + shown);
+                saveHistory();
+
+                resultOnlyVoice();
+
+                return;
+            }
+        }
+
+        // =========================================================
         // FORMULA CALCULATIONS
         // =========================================================
 
-        const formulaNumbers =
+        // ---- friendly wording for shapes ----
+        let badTriangleFound = false;
+
+        (function () {
+
+            let badTriangle = false;
+
+            const fix = function (t) {
+
+                // other kinds of triangle are still "triangle" for the formulas
+                t = t.replace(
+                    /\b(?:right[\s-]?angled|right|isosceles|scalene)\s+triangle\b/g,
+                    "triangle"
+                );
+
+                const wantsArea = /\barea\b/.test(t);
+
+                if (wantsArea) {
+
+                    // equilateral triangle: base = side, height = side * sqrt(3) / 2
+                    t = t.replace(
+                        /\bequilateral\s+triangle(?:\s+(?:with|of))?(?:\s+side)?\s+(\d+(?:\.\d+)?)/g,
+                        function (m, n) {
+                            const side = parseFloat(n);
+                            return "triangle base " + side +
+                                " height " + (side * Math.sqrt(3) / 2);
+                        }
+                    );
+
+                    // three sides given: use Heron's formula
+                    t = t.replace(
+                        /\btriangle\s+(?:with\s+)?sides?\s+(\d+(?:\.\d+)?)\D+?(\d+(?:\.\d+)?)\D+?(\d+(?:\.\d+)?)/g,
+                        function (m, x, y, z) {
+                            const a = parseFloat(x);
+                            const b = parseFloat(y);
+                            const c = parseFloat(z);
+
+                            if (a + b <= c || a + c <= b || b + c <= a) {
+                                badTriangle = true;
+                                return m;
+                            }
+
+                            const half = (a + b + c) / 2;
+                            const area = Math.sqrt(
+                                half * (half - a) * (half - b) * (half - c)
+                            );
+
+                            return "triangle base " + a +
+                                " height " + (2 * area / a);
+                        }
+                    );
+                }
+
+                return t
+                    // diameter -> radius (radius = diameter / 2)
+                    .replace(
+                        /\bdiameter(?:\s+(?:of|is|equals?|=))?\s+(\d+(?:\.\d+)?)/g,
+                        function (m, n) {
+                            return "radius " + (parseFloat(n) / 2);
+                        }
+                    )
+                    // other names for a cuboid
+                    .replace(/\b(?:rectangular\s+(?:box|prism|solid)|cuboid\s+box)\b/g, "cuboid")
+                    // "circumference 7" -> "perimeter of circle 7"
+                    .replace(/\bcircumference\b(?!\s+of\s+circle)/g, "perimeter of circle")
+                    // equilateral triangle: one side is enough
+                    .replace(
+                        /\bequilateral\s+triangle(?:\s+(?:with|of))?(?:\s+side)?\s+(\d+(?:\.\d+)?)/g,
+                        function (m, n) {
+                            return "triangle " + n + " " + n + " " + n;
+                        }
+                    );
+            };
+
+            textForNumbers = fix(textForNumbers);
+            normalized = fix(normalized);
+
+            if (badTriangle) {
+                clearExpression();
+                resultBox.innerText = "Not a valid triangle";
+                speak("Not a valid triangle");
+                badTriangleFound = true;
+            }
+        })();
+
+        if (badTriangleFound) return;
+
+        let formulaNumbers =
             getNumbers(textForNumbers);
+
+        // If the person names the values ("time 20 distance 100"),
+        // put them in the order the formula expects.
+        (function () {
+
+            function keyedNumbers(text, keys) {
+
+                const numRe = /-?\d+(?:\.\d+)?/g;
+                const nums = [];
+                let m;
+
+                while ((m = numRe.exec(text)) !== null) {
+                    nums.push({ v: parseFloat(m[0]), i: m.index });
+                }
+
+                const out = [];
+                const used = {};
+
+                for (const key of keys) {
+
+                    const km = new RegExp(key).exec(text);
+
+                    if (!km) return null;
+
+                    const end = km.index + km[0].length;
+
+                    const n = nums.find(function (x) {
+                        return x.i >= end && !used[x.i];
+                    });
+
+                    if (!n) return null;
+
+                    used[n.i] = true;
+                    out.push(n.v);
+                }
+
+                return out;
+            }
+
+            const sets = [
+                { test: /\bspeed\b/, keys: ["distance", "time"] },
+                { test: /simple interest/, keys: ["principal", "rate", "time"] },
+                { test: /\bbmi\b|body mass index/, keys: ["weight", "height"] },
+                {
+                    test: /z[\s-]?score/,
+                    keys: [
+                        "z[\\s-]?score(?:\\s+of)?",
+                        "mean",
+                        "(?:standard deviation|deviation|\\bsd\\b)"
+                    ]
+                },
+                { test: /cylinder|cone/, keys: ["radius", "height"] },
+                { test: /triangle|parallelogram/, keys: ["base", "height"] },
+                { test: /rectangle/, keys: ["length", "(?:width|breadth)"] }
+            ];
+
+            for (const set of sets) {
+
+                if (set.test.test(textForNumbers)) {
+
+                    const keyed = keyedNumbers(textForNumbers, set.keys);
+
+                    if (keyed) formulaNumbers = keyed;
+
+                    break;
+                }
+            }
+        })();
+
 
         // ---------- AREA ----------
 
@@ -2870,120 +3418,10 @@ if (currencyNumbers.length >= 1) {
             }
         }
 
-        // ---------- MEAN ----------
-
-        if (
-            normalized.includes("mean")
-        ) {
-
-            if (formulaNumbers.length >= 1) {
-
-                prepareFormula("Mean");
-
-                value1El.value =
-                    formulaNumbers.join(",");
-
-                calculateFormula();
-
-                resultOnlyVoice();
-
-                return;
-            }
-        }
-
-        // ---------- MEDIAN ----------
-
-        if (
-            normalized.includes("median")
-        ) {
-
-            if (formulaNumbers.length >= 1) {
-
-                prepareFormula("Median");
-
-                value1El.value =
-                    formulaNumbers.join(",");
-
-                calculateFormula();
-
-                resultOnlyVoice();
-
-                return;
-            }
-        }
-
-        // ---------- MODE ----------
-
-        if (
-            normalized.includes("mode")
-        ) {
-
-            if (formulaNumbers.length >= 1) {
-
-                prepareFormula("Mode");
-
-                value1El.value =
-                    formulaNumbers.join(",");
-
-                calculateFormula();
-
-                resultOnlyVoice();
-
-                return;
-            }
-        }
-
-        // ---------- VARIANCE ----------
-
-        if (
-            normalized.includes("variance")
-        ) {
-
-            if (formulaNumbers.length >= 1) {
-
-                prepareFormula(
-                    "Variance"
-                );
-
-                value1El.value =
-                    formulaNumbers.join(",");
-
-                calculateFormula();
-
-                resultOnlyVoice();
-
-                return;
-            }
-        }
-
-        // ---------- STANDARD DEVIATION ----------
-
-        if (
-            normalized.includes("standard deviation")
-        ) {
-
-            if (formulaNumbers.length >= 1) {
-
-                prepareFormula(
-                    "Standard Deviation"
-                );
-
-                value1El.value =
-                    formulaNumbers.join(",");
-
-                calculateFormula();
-
-                resultOnlyVoice();
-
-                return;
-            }
-        }
-
         // ---------- Z SCORE ----------
 
         if (
-            normalized.includes("z-score") ||
-            normalized.includes("z score")
+/z[\s-]?score/.test(normalized)
         ) {
 
             if (formulaNumbers.length >= 3) {
@@ -3096,155 +3534,120 @@ if (currencyNumbers.length >= 1) {
             }
         }
 
-        // =========================================================
-        // SCIENTIFIC FUNCTIONS
-        // =========================================================
+        // ---------- MEAN ----------
 
-        // ---------------------------------------------------------
-        // SIN
-        // ---------------------------------------------------------
+        if (
+            normalized.includes("mean") ||
+            normalized.includes("average")
+        ) {
 
-        // =========================================================
-// TRIG + LOG + LN + SQRT VOICE COMMANDS
-// =========================================================
+            if (formulaNumbers.length >= 1) {
 
-if (/^sin\s+-?\d+(?:\.\d+)?$/.test(normalized)) {
+                prepareFormula("Mean");
 
-    let num = parseFloat(
-        normalized.replace("sin", "").trim()
-    );
+                value1El.value =
+                    formulaNumbers.join(",");
 
-    if (!isNaN(num)) {
+                calculateFormula();
 
-        let answer = Math.sin(num * Math.PI / 180);
-        document.getElementById("expression").innerText =
-        "sin(" + num + ")";
+                resultOnlyVoice();
 
-        updateResult(
-            answer.toFixed(decimalPlaces)
-        );
+                return;
+            }
+        }
 
-        resultOnlyVoice();
+        // ---------- MEDIAN ----------
 
-        return;
-    }
-}
+        if (
+            normalized.includes("median")
+        ) {
 
-if (/^cos\s+-?\d+(?:\.\d+)?$/.test(normalized)) {
+            if (formulaNumbers.length >= 1) {
 
-    let num = parseFloat(
-        normalized.replace("cos", "").trim()
-    );
+                prepareFormula("Median");
 
-    if (!isNaN(num)) {
+                value1El.value =
+                    formulaNumbers.join(",");
 
-        let answer = Math.cos(num * Math.PI / 180);
-        document.getElementById("expression").innerText =
-            "cos(" + num + ")";
+                calculateFormula();
 
-        updateResult(
-            answer.toFixed(decimalPlaces)
-        );
+                resultOnlyVoice();
 
-        resultOnlyVoice();
+                return;
+            }
+        }
 
-        return;
-    }
-}
+        // ---------- MODE ----------
 
-if (/^tan\s+-?\d+(?:\.\d+)?$/.test(normalized)) {
+        if (
+            normalized.includes("mode")
+        ) {
 
-    let num = parseFloat(
-        normalized.replace("tan", "").trim()
-    );
+            if (formulaNumbers.length >= 1) {
 
-    if (!isNaN(num)) {
+                prepareFormula("Mode");
 
-        let answer = Math.tan(num * Math.PI / 180);
-        document.getElementById("expression").innerText =
-            "tan(" + num + ")";
+                value1El.value =
+                    formulaNumbers.join(",");
 
-        updateResult(
-            answer.toFixed(decimalPlaces)
-        );
+                calculateFormula();
 
-        resultOnlyVoice();
+                resultOnlyVoice();
 
-        return;
-    }
-}
+                return;
+            }
+        }
 
-if (/^log\s+-?\d+(?:\.\d+)?$/.test(normalized)) {
+        // ---------- VARIANCE ----------
 
-    let num = parseFloat(
-        normalized.replace("log", "").trim()
-    );
+        if (
+            normalized.includes("variance")
+        ) {
 
-    if (!isNaN(num)) {
+            if (formulaNumbers.length >= 1) {
 
-        let answer = Math.log10(num);
-        document.getElementById("expression").innerText =
-            "log(" + num + ")";
+                prepareFormula(
+                    "Variance"
+                );
 
-        updateResult(
-            answer.toFixed(decimalPlaces)
-        );
+                value1El.value =
+                    formulaNumbers.join(",");
 
-        resultOnlyVoice();
+                calculateFormula();
 
-        return;
-    }
-}
+                resultOnlyVoice();
 
-if (/^ln\s+-?\d+(?:\.\d+)?$/.test(normalized)) {
+                return;
+            }
+        }
 
-    let num = parseFloat(
-        normalized.replace("ln", "").trim()
-    );
+        // ---------- STANDARD DEVIATION ----------
 
-    if (!isNaN(num)) {
+        if (
+            normalized.includes("standard deviation")
+        ) {
 
-        let answer = Math.log(num);
-        document.getElementById("expression").innerText =
-            "ln(" + num + ")";
+            if (formulaNumbers.length >= 1) {
 
-        updateResult(
-            answer.toFixed(decimalPlaces)
-        );
+                prepareFormula(
+                    "Standard Deviation"
+                );
 
-        resultOnlyVoice();
+                value1El.value =
+                    formulaNumbers.join(",");
 
-        return;
-    }
-}
+                calculateFormula();
 
-if (/^(square root|sqrt)\s+\d+(?:\.\d+)?$/.test(normalized)) {
+                resultOnlyVoice();
 
-    let num = parseFloat(
-        normalized
-            .replace("square root", "")
-            .replace("sqrt", "")
-            .trim()
-    );
-
-    if (!isNaN(num)) {
-
-        let answer = Math.sqrt(num);
-          document.getElementById("expression").innerText =
-            "√(" + num + ")";
-
-        updateResult(
-            answer.toFixed(decimalPlaces)
-        );
-
-        resultOnlyVoice();
-
-        return;
-    }
-}
+                return;
+            }
+        }
 
         // =========================================================
-        // NORMAL ARITHMETIC CALCULATOR
+        // NORMAL ARITHMETIC + SCIENTIFIC CALCULATOR
+        //   3 sin 30, 2 cos 90, sin 30 + cos 30, 5 factorial,
+        //   2 to the power of 3, square root of 144, 2 pi ...
         // =========================================================
 
         function factorialOf(n) {
@@ -3255,67 +3658,151 @@ if (/^(square root|sqrt)\s+\d+(?:\.\d+)?$/.test(normalized)) {
             return String(f);
         }
 
-        let arithmeticText = normalized
+        const numPattern = "(-?\\d+(?:\\.\\d+)?|Math\\.PI|Math\\.E)";
+
+        const angleFactor =
+            (typeof angleMode !== "undefined" && angleMode === "radian")
+                ? "1"
+                : "(Math.PI/180)";
+
+        // Step 1: understand spoken words (used for display too)
+        let prepared = normalized
             .replace(/[.?,]+$/g, "")
+            .replace(/\s+(?:is\s+)?(?:equals?|equal\s+to)$/g, "")
+            .replace(/([^\d])!+$/g, "$1")
+            .replace(/×/g, "*")
+            .replace(/÷/g, "/")
+            .replace(/\bx\b/g, "*")
+            .replace(/\b(?:sine|sign|sin)\b/g, "sin")
+            .replace(/\b(?:cosine|cosign|cos)\b/g, "cos")
+            .replace(/\b(?:tangent|tan)\b/g, "tan")
+            .replace(/\b(?:natural\s+log(?:arithm)?|l\s*n)\b/g, "ln")
+            .replace(/\b(?:logarithm|log)\b/g, "log")
+            .replace(/\b(?:square\s+root|sqrt|root)\b/g, "sqrt")
+            .replace(/\b(sin|cos|tan|log|ln|sqrt)\s+of\b/g, "$1")
+            .replace(/(\d)\s*(?:degrees?|°)/g, "$1")
+            .replace(/π/g, " pi ")
+            .replace(/\s+/g, " ")
+            .trim();
+
+        // Step 2: turn it into something JavaScript can calculate
+        let arithmeticText = prepared
             .replace(/\bfactorial(?:\s+of)?\s+(\d+)/g, function (m, n) {
                 return factorialOf(n);
             })
             .replace(/(\d+)\s*(?:factorial|!)/g, function (m, n) {
                 return factorialOf(n);
             })
-            .replace(/(\d+(?:\.\d+)?)\s+squared\b/g, "$1**2")
-            .replace(/(\d+(?:\.\d+)?)\s+cubed\b/g, "$1**3")
+            .replace(/(\d+(?:\.\d+)?|\bpi|\be)\s+squared\b/g, "$1**2")
+            .replace(/(\d+(?:\.\d+)?|\bpi|\be)\s+cubed\b/g, "$1**3")
+            .replace(/\bsquare\s+of\s+(\d+(?:\.\d+)?)/g, "$1**2")
             .replace(
-                /\b(?:to the power of|to the power|raised to the power of|raised to the power|raised to|power of|power|caret)\b|\^/g,
+                /\b(?:raised\s+)?to\s+(?:the\s+)?power(?:\s+of)?\b|\bpower(?:\s+of)?\b|\braised\s+to\b|\bcaret\b|\^/g,
                 "**"
             )
-            .replace(/\bx\b/g, "*")
-            .replace(/\bsin\s+(-?\d+(?:\.\d+)?)/g, "Math.sin($1*Math.PI/180)")
-            .replace(/\bcos\s+(-?\d+(?:\.\d+)?)/g, "Math.cos($1*Math.PI/180)")
-            .replace(/\btan\s+(-?\d+(?:\.\d+)?)/g, "Math.tan($1*Math.PI/180)")
-            .replace(/\blog\s+(-?\d+(?:\.\d+)?)/g, "Math.log10($1)")
-            .replace(/\bln\s+(-?\d+(?:\.\d+)?)/g, "Math.log($1)")
-            .replace(/\b(?:square root|sqrt)\s+(\d+(?:\.\d+)?)/g, "Math.sqrt($1)")
+            .replace(/\bpi\b/g, "Math.PI")
+            .replace(/\beuler(?:'s)?(?:\s+number)?\b/g, "Math.E")
+            .replace(/\be\b/g, "Math.E")
+            .replace(new RegExp("\\bsin\\s*" + numPattern, "g"), "Math.sin($1*" + angleFactor + ")")
+            .replace(new RegExp("\\bcos\\s*" + numPattern, "g"), "Math.cos($1*" + angleFactor + ")")
+            .replace(new RegExp("\\btan\\s*" + numPattern, "g"), "Math.tan($1*" + angleFactor + ")")
+            .replace(new RegExp("\\blog\\s*" + numPattern, "g"), "Math.log10($1)")
+            .replace(new RegExp("\\bln\\s*" + numPattern, "g"), "Math.log($1)")
+            .replace(new RegExp("\\bsqrt\\s*" + numPattern, "g"), "Math.sqrt($1)")
+            // implicit multiplication: 3 sin 30 -> 3*sin(30), 2 pi -> 2*pi
+            .replace(/(\d|\)|Math\.PI|Math\.E)\s*(?=Math\.)/g, "$1*")
+            .replace(/\)\s*(?=\d)/g, ")*")
+            .replace(/(?<![A-Za-z.\d])(\d+(?:\.\d+)?)\s*(?=\()/g, "$1*")
+            .replace(/\)\s*(?=\()/g, ")*")
+            .replace(/(Math\.PI|Math\.E)\s*(?=\()/g, "$1*")
             .trim();
 
         // Safety check: only numbers, operators and our own Math functions allowed
         const safeCheck = arithmeticText
             .replace(/Math\.(sin|cos|tan|log10|log|sqrt)\(/g, "(")
-            .replace(/Math\.PI/g, "3");
+            .replace(/Math\.(PI|E)\b/g, "3");
 
         if (
             arithmeticText &&
-            /\d/.test(arithmeticText) &&
+            /\d|Math\.(PI|E)/.test(arithmeticText) &&
             /^[\d\s+\-*\/().%]+$/.test(safeCheck)
         ) {
+
+            let value = null;
+
             try {
-                const value = Function(
+                value = Function(
                     '"use strict"; return (' + arithmeticText + ');'
                 )();
-
-                if (typeof value === "number" && Number.isFinite(value)) {
-
-                    const shown = Number.isInteger(value)
-                        ? String(value)
-                        : value.toFixed(decimalPlaces);
-
-                    showExpression(
-                        normalized
-                            .replace(/to the power of|to the power|raised to the power of|raised to the power|raised to|power of|power|caret|\*\*/g, "^")
-                            .replace(/\*/g, "\u00d7")
-                            .replace(/\//g, "\u00f7")
-                    );
-
-                    updateResult(shown);
-
-                    resultOnlyVoice();
-
-                    return;
-                }
             } catch (err) {
-                // incomplete expression such as "20 +" -> fall through
+                value = null;   // incomplete expression such as "20 +"
+            }
+
+            if (typeof value === "number") {
+
+                // nicer looking expression for the display / history
+                const displayText = prepared
+                    .replace(new RegExp("\\b(sin|cos|tan|log|ln)\\s*" + numPattern, "g"), "$1($2)")
+                    .replace(new RegExp("\\bsqrt\\s*" + numPattern, "g"), "√($1)")
+                    .replace(/(\d+)\s*(?:factorial|!)/g, "$1!")
+                    .replace(/\bfactorial(?:\s+of)?\s+(\d+)/g, "$1!")
+                    .replace(/(\d+(?:\.\d+)?)\s+squared\b/g, "$1²")
+                    .replace(/\bsquare\s+of\s+(\d+(?:\.\d+)?)/g, "$1²")
+                    .replace(/(\d+(?:\.\d+)?)\s+cubed\b/g, "$1³")
+                    .replace(
+                        /\b(?:raised\s+)?to\s+(?:the\s+)?power(?:\s+of)?\b|\bpower(?:\s+of)?\b|\braised\s+to\b|\bcaret\b|\*\*/g,
+                        "^"
+                    )
+                    .replace(/\bpi\b/g, "π")
+                    .replace(/\*/g, "×")
+                    .replace(/\//g, "÷")
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+                let shown;
+
+                if (!Number.isFinite(value)) {
+
+                    shown = "Error";
+                }
+                else if (
+                    /\btan\b/.test(prepared) &&
+                    Math.abs(value) > 1e12
+                ) {
+
+                    shown = "Undefined";
+                }
+                else {
+
+                    let cleaned = value;
+
+                    if (Math.abs(cleaned) < 1e-10) {
+                        cleaned = 0;
+                    }
+                    else if (Math.abs(cleaned) < 1e5) {
+                        cleaned = Math.round(cleaned * 1e10) / 1e10;
+                    }
+
+                    shown = Number.isInteger(cleaned)
+                        ? String(cleaned)
+                        : cleaned.toFixed(decimalPlaces);
+                }
+
+                showExpression(displayText);
+
+                updateResult(shown);
+
+                if (shown !== "Error" && shown !== "Undefined") {
+                    historyList.push(displayText + " = " + shown);
+                    saveHistory();
+                }
+
+                resultOnlyVoice();
+
+                return;
             }
         }
+
         // =========================================================
         // NOTHING MATCHED
         // =========================================================
@@ -3324,26 +3811,9 @@ if (/^(square root|sqrt)\s+\d+(?:\.\d+)?$/.test(normalized)) {
 
         resultBox.innerText =
             "Command not understood";
+
+        speak("Command not understood");
     }
-function factorialValue() {
-    playButtonSound();
-
-
-    let num = parseInt(expression);
-
-    if (isNaN(num)) {
-        document.getElementById("result").innerText = "Error";
-        return;
-    }
-
-    let fact = 1;
-
-    for (let i = 1; i <= num; i++) {
-        fact *= i;
-    }
-
-    document.getElementById("result").innerText = fact;
-}
 function factorialValue() {
     playButtonSound();
 
@@ -3423,4 +3893,39 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
+});
+
+// ======================================================
+// SETTINGS: make Angle Mode and Decimal Places really work
+// (used by both the buttons and the voice commands)
+// ======================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    document
+        .querySelectorAll("#calculatorOptions select")
+        .forEach(select => {
+
+            select.addEventListener("change", function () {
+
+                const options = Array.from(this.options)
+                    .map(option => option.textContent.trim());
+
+                if (options.includes("Degree")) {
+
+                    angleMode =
+                        this.value.trim().toLowerCase() === "radian"
+                            ? "radian"
+                            : "degree";
+                }
+                else if (options.includes("2")) {
+
+                    const places = parseInt(this.value);
+
+                    if (!isNaN(places)) {
+                        decimalPlaces = places;
+                    }
+                }
+            });
+        });
 });

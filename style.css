@@ -1003,3 +1003,63 @@ body.dark-theme .settings-menu {
         height: 18px;
     }
 }
+/* RIGHT PANEL BACK BUTTON */
+
+.panel-back-btn{
+    align-self:flex-start;
+
+    padding:8px 16px;
+
+    border:none;
+    border-radius:8px;
+
+    background:#98A869;
+    color:white;
+
+    font-size:14px;
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:background 0.2s ease;
+}
+
+.panel-back-btn:hover{
+    background:#5F7144;
+}
+
+.dark-mode .panel-back-btn{
+    background:#98A869;
+    color:black;
+    border:none;
+}
+
+.dark-mode .panel-back-btn:hover{
+    background:#7F8F57 !important;
+    color:white;
+}
+
+/* LIVE RATE LABEL */
+
+.rate-info{
+    display:block;
+    margin-top:4px;
+    font-size:12px;
+    color:#7F8F57;
+}
+
+.dark-mode .rate-info{
+    color:#98A869;
+}
+
+/* CURRENCY NAME UNDER RESULT */
+
+.result-currency-name{
+    font-size:18px;
+    font-weight:normal;
+    color:#5F7144;
+}
+
+.dark-mode .result-currency-name{
+    color:#ECF0F1;
+}

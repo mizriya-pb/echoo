@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ECHOO - Automated Tests</title>
+<style>
+    body{font-family:Segoe UI,Arial,sans-serif;background:#f3f6ee;color:#2b3320;margin:0;padding:24px;}
+    h1{margin:0 0 4px;color:#5F7144;letter-spacing:2px;}
+    .sub{margin:0 0 18px;color:#6b7a52;}
+    .howto{background:#fff;border:2px solid #98A869;border-radius:12px;padding:12px 18px;margin-bottom:18px;max-width:900px;}
+    .howto code{background:#eef3e4;padding:1px 6px;border-radius:4px;}
+    #summary{font-size:22px;font-weight:bold;margin:10px 0;}
+    .pass-text{color:#2e7d32;} .fail-text{color:#c62828;}
+    button{background:#98A869;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:15px;font-weight:bold;cursor:pointer;}
+    button:hover{background:#5F7144;}
+    button:disabled{opacity:.6;cursor:default;}
+    #bar{height:14px;background:#dfe6d0;border-radius:7px;overflow:hidden;max-width:900px;margin:8px 0 18px;}
+    #barFill{height:100%;width:0;background:#98A869;transition:width .2s;}
+    details{background:#fff;border:1px solid #cfd8bd;border-radius:10px;margin:8px 0;max-width:900px;}
+    summary{cursor:pointer;padding:10px 14px;font-weight:bold;}
+    table{width:100%;border-collapse:collapse;font-size:14px;}
+    td{padding:5px 14px;border-top:1px solid #eef1e6;vertical-align:top;}
+    td.s{width:60px;font-weight:bold;} tr.ok td.s{color:#2e7d32;} tr.bad td.s{color:#c62828;} tr.bad{background:#fdeeee;}
+    .muted{color:#7b8866;font-size:12px;}
+    iframe{position:absolute;left:-9999px;width:1200px;height:800px;border:0;}
+</style>
+</head>
+<body>
+
+<h1>ECHOO TESTS</h1>
+<p class="sub">Automated checks for voice commands, formulas, converters and the right panel.</p>
+
+<div class="howto">
+    <b>How to run:</b> keep this file next to <code>index.html</code>, start your project with
+    Live Server (VS Code &rarr; right-click &rarr; <i>Open with Live Server</i>), then open
+    <code>http://127.0.0.1:5500/tests.html</code>. The tests start on their own. Green = passed, red = failed.
+    <br><span class="muted">It opens your calculator in a hidden frame, sends it phrases as if you had spoken them, and compares the answer.
+    It does not use the microphone, does not touch your saved history or settings, and always uses fixed currency
+    rates (USD 85, EUR 98, GBP 115) so results never change.</span>
+</div>
+
+<button id="runBtn" onclick="runAll()">Run tests again</button>
+<div id="summary">Starting&hellip;</div>
+<div id="bar"><div id="barFill"></div></div>
+<div id="report"></div>
+
+<iframe id="app" title="app under test"></iframe>
+
+<script>
+// ---------------------------------------------------------------
+// TEST DATA  (phrase -> expected first line of the result box)
+// ---------------------------------------------------------------
+const VOICE_GROUPS = [
+ [
+  "Calculator functions",
+  [
+   [
+    "3 sin 30",
+    "1.50"
+   ],
+   [
+    "2 cos 90",
+    "0"
+   ],
+   [
+    "sin 30",
+    "0.50"
+   ],
+   [
+    "4 tan 45",
+    "4"
+   ],
+   [
+    "log 100",
+    "2"
+   ],
+   [
+    "3 log 100",
+    "6"
+   ],
+   [
+    "ln 1",
+    "0"
+   ],
+   [
+    "square root 16",
+    "4"
+   ],
+   [
+    "sqrt 25",
+    "5"
+   ],
+   [
+    "3 pi",
+    "9.42"
+   ],
+   [
+    "pi",
+    "3.14"
+   ],
+   [
+    "2 e",
+    "5.44"
+   ],
+   [
+    "5 squared",
+    "25"
+   ],
+   [
+    "5 factorial",
+    "120"
+   ],
+   [
+    "2 to the power of 10",
+    "1024"
+   ],
+   [
+    "( 2 + 3 ) * 4",
+    "20"
+   ],
+   [
+    "open bracket 2 plus 3 close bracket times 4",
+    "20"
+   ],
+   [
+    "3 point 5 plus 1",
+    "4.50"
+   ],
+   [
+    "cosine of 60",
+    "0.50"
+   ],
+   [
+    "sine 30 plus 1",
+    "1.50"
+   ],
+   [
+    "natural log of 1",
+    "0"
+   ]
+  ]
+ ],
+ [
+  "Calculator functions (more phrasings)",
+  [
+   [
+    "e",
+    "2.72"
+   ],
+   [
+    "e squared",
+    "7.39"
+   ],
+   [
+    "ln e",
+    "1"
+   ],
+   [
+    "2 times e",
+    "5.44"
+   ],
+   [
+    "euler number",
+    "2.72"
+   ],
+   [
+    "3 sin 30 + 2 cos 60",
+    "2.50"
+   ],
+   [
+    "sin 30 cos 60",
+    "0.25"
+   ],
+   [
+    "sin 30 times cos 60",
+    "0.25"
+   ],
+   [
+    "2 sin 30 plus 3 cos 60 minus tan 45",
+    "1.50"
+   ],
+   [
+    "tan 90",
+    "Undefined"
+   ],
+   [
+    "10 divided by 4",
+    "2.50"
+   ],
+   [
+    "10 divided by 0",
+    "Error"
+   ],
+   [
+    "minus 5 plus 3",
+    "-2"
+   ],
+   [
+    "square of 5",
+    "25"
+   ],
+   [
+    "5 cubed",
+    "125"
+   ],
+   [
+    "5 factorial plus 3 factorial",
+    "126"
+   ],
+   [
+    "factorial of 0",
+    "1"
+   ],
+   [
+    "log 1000",
+    "3"
+   ],
+   [
+    "sin 30 degrees",
+    "0.50"
+   ],
+   [
+    "what is sin 30",
+    "0.50"
+   ],
+   [
+    "calculate 20 plus 30",
+    "50"
+   ],
+   [
+    "20 plus 30 equals",
+    "50"
+   ],
+   [
+    "20 plus 30 equal",
+    "50"
+   ],
+   [
+    "twenty plus thirty",
+    "50"
+   ],
+   [
+    "twenty five times four",
+    "100"
+   ],
+   [
+    "5 times 4 times 3",
+    "60"
+   ],
+   [
+    "2 x 3",
+    "6"
+   ],
+   [
+    "2 into 3",
+    "6"
+   ],
+   [
+    "2 multiplied by 3",
+    "6"
+   ],
+   [
+    "100 minus 1",
+    "99"
+   ],
+   [
+    "7 divided by 2",
+    "3.50"
+   ],
+   [
+    "2 power 3",
+    "8"
+   ],
+   [
+    "2 raised to the power of 3",
+    "8"
+   ],
+   [
+    "2 raised to 3",
+    "8"
+   ],
+   [
+    "3 caret 2",
+    "9"
+   ],
+   [
+    "4 to the power of 0.5",
+    "2"
+   ],
+   [
+    "10 to the power of minus 2",
+    "0.01"
+   ],
+   [
+    "square root of 144",
+    "12"
+   ],
+   [
+    "square root of 2",
+    "1.41"
+   ],
+   [
+    "root 9",
+    "3"
+   ],
+   [
+    "2 square root 16",
+    "8"
+   ],
+   [
+    "sqrt 16 plus 4",
+    "8"
+   ],
+   [
+    "open bracket 3 plus 4 close bracket times 2",
+    "14"
+   ],
+   [
+    "2 open bracket 3 plus 4 close bracket",
+    "14"
+   ],
+   [
+    "one plus one",
+    "2"
+   ],
+   [
+    "nine plus ten",
+    "19"
+   ],
+   [
+    "zero plus zero",
+    "0"
+   ]
+  ]
+ ],
+ [
+  "Word numbers & mixed phrasing",
+  [
+   [
+    "Area of circle with radius five.",
+    "78.54"
+   ],
+   [
+    "volume of sphere radius three",
+    "113.10"
+   ],
+   [
+    "Perimeter of a square with side four",
+    "16.00"
+   ],
+   [
+    "mean of five ten fifteen",
+    "10.00"
+   ],
+   [
+    "what is the average of 2 4 6",
+    "4.00"
+   ],
+   [
+    "10 to binary.",
+    "1010"
+   ],
+   [
+    "Convert 100 Dollars to Rupees",
+    "8500.00"
+   ],
+   [
+    "convert one hundred dollars to rupees",
+    "8500.00"
+   ],
+   [
+    "Binary 1111 to decimal",
+    "15"
+   ],
+   [
+    "Sin 30 + Cos 30",
+    "1.37"
+   ],
+   [
+    "3 sign 30",
+    "1.50"
+   ],
+   [
+    "3 sin 30 plus 2 cos 90",
+    "1.50"
+   ]
+  ]
+ ],
+ [
+  "Formulas (area, volume, perimeter, stats…)",
+  [
+   [
+    "area of circle with radius 5",
+    "78.54"
+   ],
+   [
+    "area of circle 5",
+    "78.54"
+   ],
+   [
+    "circle area radius 5",
+    "78.54"
+   ],
+   [
+    "find the area of a circle whose radius is 5",
+    "78.54"
+   ],
+   [
+    "area of square with side 4",
+    "16.00"
+   ],
+   [
+    "area of square 4",
+    "16.00"
+   ],
+   [
+    "area of rectangle length 5 width 3",
+    "15.00"
+   ],
+   [
+    "area of rectangle 5 and 3",
+    "15.00"
+   ],
+   [
+    "area of rectangle 5 by 3",
+    "15.00"
+   ],
+   [
+    "area of triangle base 10 height 5",
+    "25.00"
+   ],
+   [
+    "area of triangle 10 and 5",
+    "25.00"
+   ],
+   [
+    "area of parallelogram base 6 height 4",
+    "24.00"
+   ],
+   [
+    "area of parallelogram 6 and 4",
+    "24.00"
+   ],
+   [
+    "volume of cube 3",
+    "27.00"
+   ],
+   [
+    "volume of cube with side 3",
+    "27.00"
+   ],
+   [
+    "volume of cuboid 2 3 4",
+    "24.00"
+   ],
+   [
+    "volume of cuboid length 2 width 3 height 4",
+    "24.00"
+   ],
+   [
+    "volume of cylinder radius 3 height 5",
+    "141.37"
+   ],
+   [
+    "volume of cylinder 3 and 5",
+    "141.37"
+   ],
+   [
+    "volume of cone radius 3 height 5",
+    "47.12"
+   ],
+   [
+    "volume of cone 3 and 5",
+    "47.12"
+   ],
+   [
+    "volume of sphere radius 3",
+    "113.10"
+   ],
+   [
+    "volume of sphere 3",
+    "113.10"
+   ],
+   [
+    "perimeter of square 4",
+    "16.00"
+   ],
+   [
+    "perimeter of rectangle 5 and 3",
+    "16.00"
+   ],
+   [
+    "perimeter of rectangle length 5 width 3",
+    "16.00"
+   ],
+   [
+    "perimeter of triangle 3 4 5",
+    "12.00"
+   ],
+   [
+    "perimeter of triangle sides 3 4 and 5",
+    "12.00"
+   ],
+   [
+    "perimeter of circle 7",
+    "43.98"
+   ],
+   [
+    "circumference of circle 7",
+    "43.98"
+   ],
+   [
+    "perimeter of parallelogram 5 and 3",
+    "16.00"
+   ],
+   [
+    "speed distance 100 time 2",
+    "50.00"
+   ],
+   [
+    "speed 100 and 2",
+    "50.00"
+   ],
+   [
+    "calculate speed distance 100 time 4",
+    "25.00"
+   ],
+   [
+    "simple interest principal 1000 rate 5 time 2",
+    "100.00"
+   ],
+   [
+    "simple interest 1000 5 2",
+    "100.00"
+   ],
+   [
+    "simple interest of 1000 at 5 percent for 2 years",
+    "100.00"
+   ],
+   [
+    "bmi weight 70 height 1.75",
+    "22.86"
+   ],
+   [
+    "bmi 70 and 1.75",
+    "22.86"
+   ],
+   [
+    "percentage 45 out of 50",
+    "90.00"
+   ],
+   [
+    "percentage 45 by 50",
+    "90.00"
+   ],
+   [
+    "percentage 45 and 50",
+    "90.00"
+   ],
+   [
+    "mean of 1 2 3 4 5",
+    "3.00"
+   ],
+   [
+    "average of 1 2 3 4 5",
+    "3.00"
+   ],
+   [
+    "median of 1 3 2",
+    "2.00"
+   ],
+   [
+    "median of 1 2 3 4",
+    "2.50"
+   ],
+   [
+    "mode of 1 2 2 3",
+    "2.00"
+   ],
+   [
+    "variance of 1 2 3 4 5",
+    "2.00"
+   ],
+   [
+    "standard deviation of 2 4 4 4 5 5 7 9",
+    "2.00"
+   ],
+   [
+    "z score x 70 mean 60 standard deviation 5",
+    "2.00"
+   ],
+   [
+    "z score 70 60 5",
+    "2.00"
+   ],
+   [
+    "covariance x 1 2 3 y 2 4 6",
+    "1.33"
+   ],
+   [
+    "covariance of 1 2 3 and 2 4 6",
+    "1.33"
+   ]
+  ]
+ ],
+ [
+  "Percentage",
+  [
+   [
+    "percentage of 45 out of 50",
+    "90.00"
+   ],
+   [
+    "what is the percentage of 45 out of 50",
+    "90.00"
+   ],
+   [
+    "calculate percentage 45 by 50",
+    "90.00"
+   ],
+   [
+    "percentage obtained 45 total 50",
+    "90.00"
+   ],
+   [
+    "percentage value 45 total 50",
+    "90.00"
+   ],
+   [
+    "45 out of 50 percentage",
+    "90.00"
+   ],
+   [
+    "45 out of 50 as a percentage",
+    "90.00"
+   ],
+   [
+    "20 percent of 50",
+    "10"
+   ],
+   [
+    "what is 20 percent of 50",
+    "10"
+   ]
+  ]
+ ],
+ [
+  "Volume & perimeter",
+  [
+   [
+    "volume of a cylinder with radius 3 and height 5",
+    "141.37"
+   ],
+   [
+    "volume of cylinder height 5 radius 3",
+    "141.37"
+   ],
+   [
+    "volume of a cone whose radius is 3 and height is 5",
+    "47.12"
+   ],
+   [
+    "volume of cone height 5 radius 3",
+    "47.12"
+   ],
+   [
+    "volume of a sphere of radius 3",
+    "113.10"
+   ],
+   [
+    "volume of a cube of side 3",
+    "27.00"
+   ],
+   [
+    "volume of cube with edge 3",
+    "27.00"
+   ],
+   [
+    "cube volume 3",
+    "27.00"
+   ],
+   [
+    "sphere volume radius 3",
+    "113.10"
+   ],
+   [
+    "cylinder volume radius 3 height 5",
+    "141.37"
+   ],
+   [
+    "cone volume 3 5",
+    "47.12"
+   ],
+   [
+    "volume of cuboid length 2 breadth 3 height 4",
+    "24.00"
+   ],
+   [
+    "volume of cuboid with length 2 width 3 and height 4",
+    "24.00"
+   ],
+   [
+    "volume of cuboid 2 by 3 by 4",
+    "24.00"
+   ],
+   [
+    "volume of a rectangular box 2 3 4",
+    "24.00"
+   ],
+   [
+    "cuboid volume 2 3 4",
+    "24.00"
+   ],
+   [
+    "perimeter of a square whose side is 4",
+    "16.00"
+   ],
+   [
+    "perimeter of square with side 4",
+    "16.00"
+   ],
+   [
+    "perimeter of a rectangle with length 10 and breadth 5",
+    "30.00"
+   ],
+   [
+    "perimeter of rectangle length 10 breadth 5",
+    "30.00"
+   ],
+   [
+    "rectangle perimeter 10 and 5",
+    "30.00"
+   ],
+   [
+    "perimeter of a triangle with sides 3 4 and 5",
+    "12.00"
+   ],
+   [
+    "perimeter of triangle with sides 3, 4 and 5",
+    "12.00"
+   ],
+   [
+    "triangle perimeter 3 4 5",
+    "12.00"
+   ],
+   [
+    "perimeter of a circle with radius 7",
+    "43.98"
+   ],
+   [
+    "perimeter of circle radius 7",
+    "43.98"
+   ],
+   [
+    "circumference of a circle with radius 7",
+    "43.98"
+   ],
+   [
+    "circumference 7",
+    "43.98"
+   ],
+   [
+    "circle perimeter 7",
+    "43.98"
+   ],
+   [
+    "perimeter of parallelogram base 5 side 3",
+    "16.00"
+   ],
+   [
+    "perimeter of a parallelogram with base 5 and side 3",
+    "16.00"
+   ],
+   [
+    "parallelogram perimeter 5 and 3",
+    "16.00"
+   ],
+   [
+    "volume of sphere with diameter 6",
+    "113.10"
+   ],
+   [
+    "volume of cube 2.5",
+    "15.63"
+   ],
+   [
+    "perimeter of circle with diameter 14",
+    "43.98"
+   ],
+   [
+    "perimeter of equilateral triangle side 5",
+    "15.00"
+   ]
+  ]
+ ],
+ [
+  "Area",
+  [
+   [
+    "area of a circle with radius 5",
+    "78.54"
+   ],
+   [
+    "area of circle radius 5",
+    "78.54"
+   ],
+   [
+    "area of a circle whose radius is 5",
+    "78.54"
+   ],
+   [
+    "circle area 5",
+    "78.54"
+   ],
+   [
+    "area of circle with diameter 10",
+    "78.54"
+   ],
+   [
+    "area of a circle of radius 2.5",
+    "19.63"
+   ],
+   [
+    "area of a square with side 4",
+    "16.00"
+   ],
+   [
+    "area of square of side 4",
+    "16.00"
+   ],
+   [
+    "square area 4",
+    "16.00"
+   ],
+   [
+    "square area side 4",
+    "16.00"
+   ],
+   [
+    "area of a square whose side is 4",
+    "16.00"
+   ],
+   [
+    "area of a rectangle with length 5 and width 3",
+    "15.00"
+   ],
+   [
+    "area of rectangle length 5 breadth 3",
+    "15.00"
+   ],
+   [
+    "area of a rectangle with length 5 and breadth 3",
+    "15.00"
+   ],
+   [
+    "area of rectangle width 3 length 5",
+    "15.00"
+   ],
+   [
+    "rectangle area 5 and 3",
+    "15.00"
+   ],
+   [
+    "rectangle area length 5 width 3",
+    "15.00"
+   ],
+   [
+    "area of rectangle 5 into 3",
+    "15.00"
+   ],
+   [
+    "area of a triangle with base 10 and height 5",
+    "25.00"
+   ],
+   [
+    "area of triangle height 5 base 10",
+    "25.00"
+   ],
+   [
+    "triangle area base 10 height 5",
+    "25.00"
+   ],
+   [
+    "triangle area 10 and 5",
+    "25.00"
+   ],
+   [
+    "area of triangle 10 by 5",
+    "25.00"
+   ],
+   [
+    "area of a parallelogram with base 6 and height 4",
+    "24.00"
+   ],
+   [
+    "area of parallelogram height 4 base 6",
+    "24.00"
+   ],
+   [
+    "parallelogram area 6 and 4",
+    "24.00"
+   ],
+   [
+    "parallelogram area base 6 height 4",
+    "24.00"
+   ],
+   [
+    "find area of square 7",
+    "49.00"
+   ],
+   [
+    "calculate the area of a circle with radius ten",
+    "314.16"
+   ],
+   [
+    "area of triangle base five height four",
+    "10.00"
+   ],
+   [
+    "what is the area of a square with side 12",
+    "144.00"
+   ],
+   [
+    "area of a circle with radius 5 centimeters",
+    "78.54"
+   ],
+   [
+    "area of the circle having radius 5",
+    "78.54"
+   ],
+   [
+    "area of an equilateral triangle side 4",
+    "6.93"
+   ],
+   [
+    "area of a right triangle base 3 height 4",
+    "6.00"
+   ],
+   [
+    "area of a triangle with sides 3 4 5",
+    "6.00"
+   ],
+   [
+    "area of circle",
+    "Command not understood"
+   ]
+  ]
+ ],
+ [
+  "Triangles & invalid sizes",
+  [
+   [
+    "area of equilateral triangle 4",
+    "6.93"
+   ],
+   [
+    "area of a right angled triangle with base 6 and height 4",
+    "12.00"
+   ],
+   [
+    "area of isosceles triangle base 6 height 4",
+    "12.00"
+   ],
+   [
+    "area of a triangle with sides 5 5 6",
+    "12.00"
+   ],
+   [
+    "area of triangle with sides 3, 4 and 5",
+    "6.00"
+   ],
+   [
+    "area of triangle with sides 1 2 10",
+    "Not a valid triangle"
+   ],
+   [
+    "perimeter of a triangle with sides 5 5 6",
+    "16.00"
+   ],
+   [
+    "area of circle radius 0",
+    "Enter valid values"
+   ]
+  ]
+ ],
+ [
+  "Currency & binary",
+  [
+   [
+    "100 dollars to rupees",
+    "8500.00"
+   ],
+   [
+    "convert 100 usd to inr",
+    "8500.00"
+   ],
+   [
+    "100 dollars in rupees",
+    "8500.00"
+   ],
+   [
+    "$100 to rupees",
+    "8500.00"
+   ],
+   [
+    "convert 100 dollars into rupees",
+    "8500.00"
+   ],
+   [
+    "5000 rupees to dollars",
+    "58.82"
+   ],
+   [
+    "5000 inr to usd",
+    "58.82"
+   ],
+   [
+    "convert 5000 rupees to dollars",
+    "58.82"
+   ],
+   [
+    "100 euros to rupees",
+    "9800.00"
+   ],
+   [
+    "100 eur to inr",
+    "9800.00"
+   ],
+   [
+    "5000 rupees to euros",
+    "51.02"
+   ],
+   [
+    "100 pounds to rupees",
+    "11500.00"
+   ],
+   [
+    "100 gbp to inr",
+    "11500.00"
+   ],
+   [
+    "5000 rupees to pounds",
+    "43.48"
+   ],
+   [
+    "rupees to dollars 850",
+    "10.00"
+   ],
+   [
+    "convert from rupees to euros 980",
+    "10.00"
+   ],
+   [
+    "how many rupees is 10 dollars",
+    "850.00"
+   ],
+   [
+    "what is 10 dollars in rupees",
+    "850.00"
+   ],
+   [
+    "1,000 rupees to dollars",
+    "11.76"
+   ],
+   [
+    "ten dollars to rupees",
+    "850.00"
+   ],
+   [
+    "10 to binary",
+    "1010"
+   ],
+   [
+    "convert 10 to binary",
+    "1010"
+   ],
+   [
+    "10 decimal to binary",
+    "1010"
+   ],
+   [
+    "decimal to binary 10",
+    "1010"
+   ],
+   [
+    "convert decimal 10 into binary",
+    "1010"
+   ],
+   [
+    "1010 binary to decimal",
+    "10"
+   ],
+   [
+    "binary 1010 to decimal",
+    "10"
+   ],
+   [
+    "binary to decimal 1010",
+    "10"
+   ],
+   [
+    "convert 1010 from binary to decimal",
+    "10"
+   ],
+   [
+    "10 decimal to octal",
+    "12"
+   ],
+   [
+    "decimal 10 to octal",
+    "12"
+   ],
+   [
+    "12 octal to decimal",
+    "10"
+   ],
+   [
+    "octal 12 to decimal",
+    "10"
+   ],
+   [
+    "255 decimal to hexadecimal",
+    "FF"
+   ],
+   [
+    "255 to hex",
+    "FF"
+   ],
+   [
+    "decimal 255 to hexadecimal",
+    "FF"
+   ],
+   [
+    "ff hexadecimal to decimal",
+    "255"
+   ],
+   [
+    "hex ff to decimal",
+    "255"
+   ],
+   [
+    "hexadecimal to decimal ff",
+    "255"
+   ],
+   [
+    "convert 1f from hex to decimal",
+    "31"
+   ],
+   [
+    "what is 8 in binary",
+    "1000"
+   ],
+   [
+    "binary of 8",
+    "1000"
+   ],
+   [
+    "hexadecimal of 255",
+    "FF"
+   ],
+   [
+    "octal of 8",
+    "10"
+   ],
+   [
+    "binary 101 to decimal",
+    "5"
+   ],
+   [
+    "decimal 5 to binary",
+    "101"
+   ]
+  ]
+ ],
+ [
+  "Big numbers in words",
+  [
+   [
+    "two thousand five hundred rupees to dollars",
+    "29.41"
+   ],
+   [
+    "one thousand rupees to dollars",
+    "11.76"
+   ],
+   [
+    "two hundred plus three hundred",
+    "500"
+   ]
+  ]
+ ]
+];
+
+// [formula, shape, [inputs], expected result]
+const PANEL_CASES = [
+    ["Area","Circle",["5"],"78.54"], ["Area","Square",["4"],"16.00"],
+    ["Area","Rectangle",["5","3"],"15.00"], ["Area","Triangle",["10","5"],"25.00"],
+    ["Area","Parallelogram",["6","4"],"24.00"],
+    ["Volume","Cube",["3"],"27.00"], ["Volume","Cuboid",["2","3","4"],"24.00"],
+    ["Volume","Cylinder",["3","5"],"141.37"], ["Volume","Cone",["3","5"],"47.12"],
+    ["Volume","Sphere",["3"],"113.10"],
+    ["Perimeter","Circle",["7"],"43.98"], ["Perimeter","Rectangle",["10","5"],"30.00"],
+    ["Perimeter","Square",["4"],"16.00"], ["Perimeter","Triangle",["3","4","5"],"12.00"],
+    ["Perimeter","Parallelogram",["5","3"],"16.00"],
+    ["Volume","Cylinder",["3"],"Enter valid values"],
+    ["Perimeter","Triangle",["3","4"],"Enter valid values"],
+    ["Area","Circle",["-5"],"Enter valid values"]
+];
+
+// voice control commands: none of these may crash
+const CONTROL_COMMANDS = [
+    "open history", "show history", "close history", "clear history",
+    "open about", "show about", "about page",
+    "open settings", "show settings", "close settings",
+    "dark mode", "light mode", "switch to dark", "switch to light",
+    "change to dark", "change to light",
+    "radian mode", "degree mode", "degrees mode", "radians mode",
+    "open formulas", "show formulas",
+    "clear", "all clear", "backspace", "go back"
+];
+
+// ---------------------------------------------------------------
+// HELPERS
+// ---------------------------------------------------------------
+const frame = document.getElementById("app");
+let w, d;
+const spoken = [];
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const $ = id => d.getElementById(id);
+const firstLine = () => $("result").innerText.trim();
+
+function resetApp() {
+    w.clearDisplay();
+    w.resetRightPanel();
+    $("result").innerText = "0";
+    $("expression").innerText = "";
+    spoken.length = 0;
+}
+
+function fire(el, type) {
+    el.dispatchEvent(new w.Event(type, { bubbles: true }));
+}
+
+function setSelect(id, value) {
+    const el = $(id);
+    el.value = value;
+    fire(el, "change");
+}
+
+function setInput(id, value) {
+    $(id).value = value;
+}
+
+function matches(actual, expected) {
+    return actual === expected || actual.startsWith(expected + " ") || actual.startsWith(expected + "\n");
+}
+
+// ---------------------------------------------------------------
+// RUNNER
+// ---------------------------------------------------------------
+async function loadApp() {
+    await new Promise(resolve => {
+        frame.onload = resolve;
+        frame.src = "index.html?test=" + Date.now();
+    });
+
+    w = frame.contentWindow;
+    d = frame.contentDocument;
+
+    // wait until the live-rate lookup has finished (or failed)
+    for (let i = 0; i < 40 && $("rateInfo") && $("rateInfo").innerText.indexOf("Loading") === 0; i++) {
+        await sleep(250);
+    }
+
+    // make the test deterministic and harmless
+    w.eval(
+        "currencyRates = { USD: 85, EUR: 98, GBP: 115 };" +
+        "currencyRateStatus = { live: false, date: null };" +
+        "buttonSoundEnabled = false;" +
+        "voiceOutputEnabled = true;"
+    );
+    w.saveHistory = function () {};
+    w.speechSynthesis.speak = function (u) { spoken.push(u.text); };
+    w.speechSynthesis.cancel = function () {};
+}
+
+async function runAll() {
+
+    const btn = document.getElementById("runBtn");
+    btn.disabled = true;
+
+    const report = document.getElementById("report");
+    report.innerHTML = "";
+    document.getElementById("summary").textContent = "Running\u2026";
+    document.getElementById("barFill").style.width = "0";
+
+    // remember the app's saved settings so the tests can put them back
+    const saved = {};
+    for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        saved[k] = localStorage.getItem(k);
+    }
+    localStorage.removeItem("echoDecimalPlaces");
+    localStorage.removeItem("echoAngleMode");
+
+    await loadApp();
+
+    const total = VOICE_GROUPS.reduce((n, g) => n + g[1].length, 0) + PANEL_CASES.length + 8 + CONTROL_COMMANDS.length + 5;
+    let done = 0, passed = 0, failed = 0;
+    const failures = [];
+
+    function addGroup(title, rows) {
+        const p = rows.filter(r => r.ok).length;
+        const det = document.createElement("details");
+        if (p !== rows.length) det.open = true;
+
+        const sum = document.createElement("summary");
+        sum.innerHTML = title + " &mdash; <span class='" + (p === rows.length ? "pass-text" : "fail-text") + "'>" +
+            p + " / " + rows.length + " passed</span>";
+        det.appendChild(sum);
+
+        const tbl = document.createElement("table");
+        rows.forEach(r => {
+            const tr = document.createElement("tr");
+            tr.className = r.ok ? "ok" : "bad";
+            const td1 = document.createElement("td"); td1.className = "s"; td1.textContent = r.ok ? "PASS" : "FAIL";
+            const td2 = document.createElement("td"); td2.textContent = r.name;
+            const td3 = document.createElement("td");
+            td3.textContent = r.ok ? r.actual : "got \"" + r.actual + "\"  expected \"" + r.expected + "\"" + (r.note ? "  (" + r.note + ")" : "");
+            tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+            tbl.appendChild(tr);
+        });
+        det.appendChild(tbl);
+        report.appendChild(det);
+    }
+
+    function record(list, name, actual, expected, ok, note) {
+        list.push({ name, actual, expected, ok, note });
+        done++;
+        if (ok) passed++; else { failed++; failures.push(name); }
+        document.getElementById("barFill").style.width = (100 * done / total) + "%";
+    }
+
+    // ---- 1. voice commands ----
+    for (const [title, cases] of VOICE_GROUPS) {
+        const rows = [];
+        for (const [phrase, expected] of cases) {
+            resetApp();
+            let err = null;
+            try { w.processVoiceCommand(phrase); } catch (e) { err = String(e); }
+            const actual = err ? "ERROR: " + err : firstLine();
+            const ok = !err && matches(actual, expected) && spoken.length > 0;
+            record(rows, "\u201c" + phrase + "\u201d", actual, expected, ok,
+                   !err && matches(actual, expected) && spoken.length === 0 ? "nothing was spoken" : "");
+            if (done % 20 === 0) await sleep(0);
+        }
+        addGroup("Voice: " + title, rows);
+    }
+
+    // ---- 2. right panel used by hand ----
+    {
+        const rows = [];
+        for (const [formula, shape, inputs, expected] of PANEL_CASES) {
+            resetApp();
+            setSelect("formulaSelect", formula);
+            setSelect("shapeSelect", shape);
+            ["value1", "value2", "value3"].forEach((id, i) => { if (i < inputs.length) setInput(id, inputs[i]); });
+            $("formulaInputs").querySelector("button").click();
+            const actual = firstLine();
+            record(rows, formula + " \u203a " + shape + "  [" + inputs.join(", ") + "]", actual, expected, actual === expected);
+        }
+        addGroup("Right panel: formulas typed by hand", rows);
+    }
+
+    // ---- 3. other panel features ----
+    {
+        const rows = [];
+
+        // currency (by hand)
+        resetApp();
+        setSelect("currencySelect", "EUR \u2192 INR");
+        setInput("currencyAmount", "50");
+        $("currencyInputs").querySelector("button").click();
+        let a = firstLine();
+        record(rows, "Currency by hand: 50 EUR \u2192 INR", a.split("\n")[0], "4900.00 INR", matches(a, "4900.00 INR"));
+        const nm = $("result").innerText.indexOf("Indian Rupees") !== -1;
+        record(rows, "Currency result names the currency", nm ? "Indian Rupees shown" : "name missing", "Indian Rupees shown", nm);
+
+        // binary (by hand)
+        resetApp();
+        setSelect("binarySelect", "Decimal \u2192 Binary");
+        setInput("binaryValue", "10");
+        $("binaryInputs").querySelector("button").click();
+        a = firstLine();
+        record(rows, "Binary by hand: 10 decimal \u2192 binary", a, "1010", a === "1010");
+
+        // back button
+        resetApp();
+        const vis = id => w.getComputedStyle($(id)).display !== "none";
+        setSelect("formulaSelect", "Area");
+        const onlyFormula = vis("formulaSection") && !vis("currencySection") && !vis("binarySection") && vis("panelBackBtn");
+        record(rows, "Back button appears when one section is open", onlyFormula ? "shown" : "not shown", "shown", onlyFormula);
+        $("panelBackBtn").click();
+        const allBack = vis("formulaSection") && vis("currencySection") && vis("binarySection") && !vis("panelBackBtn");
+        record(rows, "Back button returns to all three sections", allBack ? "all visible" : "not restored", "all visible", allBack);
+
+        // voice 'go back'
+        setSelect("binarySelect", "Binary \u2192 Decimal");
+        w.processVoiceCommand("go back");
+        const voiceBack = vis("formulaSection") && vis("currencySection") && vis("binarySection");
+        record(rows, "Voice \u201cgo back\u201d returns to all sections", voiceBack ? "all visible" : "not restored", "all visible", voiceBack);
+
+        // settings page
+        const dupes = d.querySelectorAll("#buttonSoundToggle").length;
+        record(rows, "Only one Button Sound dropdown", dupes + " found", "1 found", dupes === 1);
+
+        // angle mode + decimals (settings restored afterwards)
+        resetApp();
+        w.processVoiceCommand("radian mode"); resetApp();
+        w.processVoiceCommand("sin 30");
+        a = firstLine();
+        w.processVoiceCommand("degree mode");
+        record(rows, "Radian mode: sin 30 = -0.99", a, "-0.99", a === "-0.99");
+
+        addGroup("Right panel & settings", rows);
+    }
+
+    // ---- 4. control commands must not crash, and the page must be well formed ----
+    {
+        const rows = [];
+
+        for (const c of CONTROL_COMMANDS) {
+            resetApp();
+            let err = null;
+            try { w.processVoiceCommand(c); } catch (e) { err = String(e); }
+            record(rows, "Voice control: \u201c" + c + "\u201d", err ? "ERROR: " + err : "no error", "no error", !err);
+        }
+        w.processVoiceCommand("degree mode");
+        w.processVoiceCommand("light mode");
+
+        const ids = Array.from(d.querySelectorAll("[id]")).map(e => e.id);
+        const dup = ids.filter((x, i) => ids.indexOf(x) !== i);
+        record(rows, "Page has no duplicate ids", dup.length ? dup.join(", ") : "none", "none", dup.length === 0);
+
+        const unlabelled = Array.from(d.querySelectorAll("label")).filter(l => !l.htmlFor);
+        record(rows, "Every label is linked to its input", unlabelled.length + " unlinked", "0 unlinked", unlabelled.length === 0);
+
+        const noName = Array.from(d.querySelectorAll("select,input,textarea")).filter(e => !e.id && !e.name);
+        record(rows, "Every form field has an id or name", noName.length + " without", "0 without", noName.length === 0);
+
+        // settings dropdowns really change the calculation
+        const setDrop = (id, v) => { const e = $(id); e.value = v; fire(e, "change"); };
+
+        resetApp(); setDrop("angleModeSelect", "Radian"); w.processVoiceCommand("sin 30");
+        let a = firstLine(); setDrop("angleModeSelect", "Degree");
+        record(rows, "Angle Mode dropdown: Radian, sin 30", a, "-0.99", a === "-0.99");
+
+        resetApp(); setDrop("decimalPlacesSelect", "4"); w.processVoiceCommand("1 divided by 3");
+        a = firstLine(); setDrop("decimalPlacesSelect", "2");
+        record(rows, "Decimal Places dropdown: 4 places, 1 \u00f7 3", a, "0.3333", a === "0.3333");
+
+        addGroup("Control commands & page checks", rows);
+    }
+
+    // ---- put everything back the way it was ----
+    localStorage.clear();
+    Object.keys(saved).forEach(k => localStorage.setItem(k, saved[k]));
+
+    const summary = document.getElementById("summary");
+    summary.innerHTML = failed === 0
+        ? "<span class='pass-text'>All " + passed + " tests passed \u2714</span>"
+        : "<span class='fail-text'>" + failed + " failed</span>, " + passed + " passed (of " + done + ")";
+
+    btn.disabled = false;
+}
+
+window.addEventListener("load", runAll);
+</script>
+</body>
+</html>
