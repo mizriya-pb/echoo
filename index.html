@@ -29,15 +29,15 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
          <div id="sideMenu" class="side-menu">
 
     <div class="menu-item" onclick="openHistory()">
-        🕒 History
+        History
     </div>
 
     <div class="menu-item" onclick="openSettings()">
-        ⚙ Settings
+         Settings
     </div>
 
     <div class="menu-item" onclick="showAbout()">
-        ℹ About
+        About
     </div>
 
     </div>
@@ -45,11 +45,11 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
 <div id="settingsMenu" class="settings-menu">
 
-    <h3>⚙ Settings</h3>
+    <h3> Settings</h3>
 
 
     <div class="setting-option" onclick="toggleSetting('themeOptions')">
-        🎨 Theme
+         Theme
         <span>></span>
     </div>
 
@@ -64,46 +64,46 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
 </select>
     </div>
+<div class="setting-option" onclick="toggleSetting('voiceSettings')">
+    Voice Settings
+    <span>></span>
+</div>
+
+<div id="voiceSettings" class="setting-dropdown">
+
+    <label for="voiceInputToggle">Voice Input</label>
+    <select id="voiceInputToggle">
+        <option value="ON">ON</option>
+        <option value="OFF">OFF</option>
+    </select>
+
+    <label for="voiceOutputToggle">Voice Output</label>
+    <select id="voiceOutputToggle">
+        <option value="ON">ON</option>
+        <option value="OFF">OFF</option>
+    </select>
+
+</div>
+<div class="setting-option" onclick="toggleSetting('soundOptions')">
+     Button Sound
+    <span>></span>
+</div>
 
 
+<div id="soundOptions" class="setting-dropdown">
 
-    <div class="setting-option" onclick="toggleSetting('voiceOptions')">
-        🎤 Voice Settings
-        <span>></span>
-    </div>
+    <select id="buttonSoundToggle">
+        <option value="ON">ON</option>
+        <option value="OFF">OFF</option>
+    </select>
 
-
-    <div id="voiceOptions" class="setting-dropdown">
-
-
-        <label>Voice Input</label>
-
-        <select>
-
-            <option>ON</option>
-            <option>OFF</option>
-
-        </select>
-
-
-
-        <label>Voice Output</label>
-
-        <select>
-
-            <option>ON</option>
-            <option>OFF</option>
-
-        </select>
-
-
-    </div>
+</div>
 
 
 
 
     <div class="setting-option" onclick="toggleSetting('calculatorOptions')">
-        🧮 Calculator
+         Calculator
         <span>></span>
     </div>
 
@@ -111,9 +111,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     <div id="calculatorOptions" class="setting-dropdown">
 
 
-        <label>Decimal Places</label>
+        <label for="decimalPlacesSelect">Decimal Places</label>
 
-        <select>
+        <select id="decimalPlacesSelect" name="decimalPlaces">
 
             <option>2</option>
             <option>3</option>
@@ -123,9 +123,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
 
 
-        <label>Angle Mode</label>
+        <label for="angleModeSelect">Angle Mode</label>
 
-        <select>
+        <select id="angleModeSelect" name="angleMode">
 
             <option>Degree</option>
             <option>Radian</option>
@@ -136,26 +136,6 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     </div>
 
 
-
-
-    <div class="setting-option" onclick="toggleSetting('soundOptions')">
-        🔊 Button Sound
-        <span>></span>
-    </div>
-
-
-    <div id="soundOptions" class="setting-dropdown">
-
-
-        <select>
-
-            <option>ON</option>
-            <option>OFF</option>
-
-        </select>
-
-
-    </div>
 
 
 </div>
@@ -230,6 +210,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 <button onclick="appendValue('*')">×</button>
 
 
+
 <!-- Row 6 -->
 <button onclick="calculateScientific('log')">log</button>
 <button onclick="calculateScientific('ln')">ln</button>
@@ -240,27 +221,26 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 <button onclick="insertConstant('pi')">π</button>
 <button onclick="insertConstant('e')">e</button>
 <button onclick="squareValue()">x²</button>
-<button disabled></button>
+<button onclick="factorialValue()">x!</button>
+<!-- Row 8-->
 
-
-    </div>
-<div class="voice-bar">
-
-    <button id="voiceBtn" class="voice-btn" onclick="startVoiceInput()">
-        <i class="fas fa-microphone"></i>
-    </button>
-<div class="sound-wave">
+<button onclick="appendValue('(')">(</button>
+<button onclick="appendValue(')')">)</button>
+<button onclick="powerMode()">x^y</button>
+<button id="voiceBtn" class="voice-btn-small" onclick="startVoiceInput()">
+    <i class="fas fa-microphone"></i>
+    <div class="sound-wave">
     <span></span>
     <span></span>
     <span></span>
     <span></span>
     <span></span>
 </div>
-    <div class="voice-text">
-        Tap and Speak
+</button>
+<!-- <button disabled></button> -->
+
     </div>
 
-</div>
 </div>
 
 </div>
@@ -282,8 +262,12 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     <!-- Right Sidebar -->
    <div class="right-panel">
 
+<button id="panelBackBtn" class="panel-back-btn" onclick="goBackRightPanel()" style="display:none;">
+    &larr; Back
+</button>
+
 <div id="formulaSection">
-<label>Formulas</label>    <select id="formulaSelect">
+<label for="formulaSelect">Formulas</label>    <select id="formulaSelect">
         <option selected disabled>Select Formula</option>
 
         <option>Area</option>
@@ -303,17 +287,19 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     </select>
     <div id="shapeContainer" style="display:none;">
 
-  <label id="shapeLabel">Select Shape</label>
+  <label id="shapeLabel" for="shapeSelect">Select Shape</label>
 
     <select id="shapeSelect">
 
         <option selected disabled>Select Shape</option>
 
         <option>Circle</option>
-        <option>Rectangle</option>
-        <option>Square</option>
-        <option>Triangle</option>
-        <option>Parallelogram</option>
+<option>Rectangle</option>
+<option>Square</option>
+<option>Triangle</option>
+<option>Parallelogram</option>
+<option>Cube</option>
+<option>Sphere</option>
 
     </select>
     <div id="formulaInputs" style="display:none; margin-top:10px;">
@@ -322,8 +308,8 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
     <input type="text" id="value2" placeholder="Second Value" style="display:none;">
      <input type="number" id="value3" placeholder="Third Value" style="display:none;">
-    <button onclick="calculateFormula()">
-        Calculate
+<button onclick="calculateFormula()">
+    calculate     
     </button>
 
 </div>
@@ -331,7 +317,8 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 </div>
 </div>
 <div id="currencySection">
-    <label>Currency Converter</label>
+    <label for="currencySelect">Currency Converter</label>
+    <small id="rateInfo" class="rate-info">Loading rates...</small>
     <select id="currencySelect">
         <option selected disabled>Select Conversion</option>
 
@@ -358,7 +345,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     
 
    <div id="binarySection">
-    <label>Binary Converter</label>
+    <label for="binarySelect">Binary Converter</label>
     <select id="binarySelect">
         <option selected disabled>Select Conversion</option>
 
@@ -384,12 +371,16 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
    </div>   
 </div>
 
-</div>
   
 
+
+<div id="voiceAnimation" class="voice-animation" style="display:none;">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
 </div>
-
-
 
 <script src="script.js"></script>
 </body>
