@@ -1,14 +1,14 @@
-from datetime import timedelta
-from urllib import request
-from django.utils import timezone
-import requests
-from .models import CurrencyRate
+import ast
 import math
 import re
-from django.http import JsonResponse
 from collections import Counter
-import json
-from django.views.decorators.csrf import csrf_exempt
+from datetime import timedelta
+
+import requests
+from django.http import JsonResponse
+from django.utils import timezone
+
+from .models import CurrencyRate
 
 
 def home(request):
@@ -17,11 +17,83 @@ def home(request):
     })
 
 
+MAX_EXPRESSION_LENGTH = 200
+
+# only these functions and constants may appear in an expression
+SAFE_FUNCTIONS = {
+    "sin": lambda x: math.sin(math.radians(x)),
+    "cos": lambda x: math.cos(math.radians(x)),
+    "tan": lambda x: math.tan(math.radians(x)),
+    "sqrt": math.sqrt,
+    "log": math.log10,
+    "ln": math.log,
+}
+
+SAFE_CONSTANTS = {
+    "pi": math.pi,
+    "e": math.e,
+}
+
+
+def _apply_operator(op, left, right):
+    if isinstance(op, ast.Add):
+        return left + right
+    if isinstance(op, ast.Sub):
+        return left - right
+    if isinstance(op, ast.Mult):
+        return left * right
+    if isinstance(op, ast.Div):
+        return left / right
+    if isinstance(op, ast.FloorDiv):
+        return left // right
+    if isinstance(op, ast.Pow):
+        # stop things like 9^9^9 from freezing the server:
+        # refuse any power whose answer would have more than 300 digits
+        if left != 0 and right * math.log10(abs(left)) > 300:
+            raise ValueError("Power is too large")
+        return left ** right
+    raise ValueError("Operator not allowed")
+
+
+def _evaluate(node):
+    """Walks the parsed expression and only allows numbers, + - * / **,
+    brackets, the constants pi and e, and the functions in SAFE_FUNCTIONS."""
+
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, (int, float)) and not isinstance(node.value, bool):
+            return node.value
+        raise ValueError("Only numbers are allowed")
+
+    if isinstance(node, ast.Name) and node.id in SAFE_CONSTANTS:
+        return SAFE_CONSTANTS[node.id]
+
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+        value = _evaluate(node.operand)
+        return value if isinstance(node.op, ast.UAdd) else -value
+
+    if isinstance(node, ast.BinOp):
+        return _apply_operator(node.op, _evaluate(node.left), _evaluate(node.right))
+
+    if (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id in SAFE_FUNCTIONS
+        and len(node.args) == 1
+        and not node.keywords
+    ):
+        return SAFE_FUNCTIONS[node.func.id](_evaluate(node.args[0]))
+
+    raise ValueError("Expression not allowed")
+
+
 def calculate(request):
     expression = request.GET.get("expression", "")
 
     if not expression:
         return JsonResponse({"error": "Please provide an expression"}, status=400)
+
+    if len(expression) > MAX_EXPRESSION_LENGTH:
+        return JsonResponse({"error": "Expression is too long"}, status=400)
 
     # now allows letters too, since sin/cos/sqrt/etc are needed
     allowed = re.compile(r"^[0-9+\-*/().\s\^a-z]*$")
@@ -30,50 +102,72 @@ def calculate(request):
 
     safe_expr = expression.replace("^", "**")  # ^ means "power" here
 
-    # only these function names are allowed to run — nothing else
-    safe_functions = {
-        "__builtins__": {},
-        "sin": lambda x: math.sin(math.radians(x)),
-        "cos": lambda x: math.cos(math.radians(x)),
-        "tan": lambda x: math.tan(math.radians(x)),
-        "sqrt": math.sqrt,
-        "log": math.log10,
-        "ln": math.log,
-        "pi": math.pi,
-        "e": math.e,
-    }
-
     try:
-        result = eval(safe_expr, safe_functions, {})
+        result = _evaluate(ast.parse(safe_expr.strip(), mode="eval").body)
     except Exception:
+        return JsonResponse({"error": "Could not calculate that"}, status=400)
+
+    if isinstance(result, float) and (math.isnan(result) or math.isinf(result)):
         return JsonResponse({"error": "Could not calculate that"}, status=400)
 
     return JsonResponse({"expression": expression, "result": result})
 
+
 def binary_convert(request):
-    direction = request.GET.get("direction", "")  # "dec_to_bin" or "bin_to_dec"
-    value = request.GET.get("value", "")
+    direction = request.GET.get("direction", "")
+    value = request.GET.get("value", "").strip()
 
     if not value:
         return JsonResponse({"error": "Please provide a value"}, status=400)
 
+    if "_" in value or " " in value:
+        return JsonResponse({"error": "Invalid number for this conversion"}, status=400)
+
+    # direction -> (base the input is written in, how to write the answer)
+    conversions = {
+        "dec_to_bin": (10, "b"),
+        "bin_to_dec": (2, "d"),
+        "dec_to_oct": (10, "o"),
+        "oct_to_dec": (8, "d"),
+        "dec_to_hex": (10, "X"),
+        "hex_to_dec": (16, "d"),
+    }
+
+    if direction not in conversions:
+        return JsonResponse(
+            {"error": "direction must be one of: " + ", ".join(conversions)},
+            status=400,
+        )
+
+    input_base, output_format = conversions[direction]
+
     try:
-        if direction == "dec_to_bin":
-            result = bin(int(value))[2:]  # [2:] strips the "0b" prefix Python adds
-        elif direction == "bin_to_dec":
-            result = str(int(value, 2))
-        else:
-            return JsonResponse({"error": "direction must be dec_to_bin or bin_to_dec"}, status=400)
+        number = int(value, input_base)
     except ValueError:
         return JsonResponse({"error": "Invalid number for this conversion"}, status=400)
 
-    return JsonResponse({"result": result})
+    return JsonResponse({"result": format(number, output_format)})
+
+
 def formula_calculate(request):
     formula = request.GET.get("formula", "")
 
     def get_numbers(param_name):
         raw = request.GET.get(param_name, "")
         return [float(x.strip()) for x in raw.split(",") if x.strip() != ""]
+
+    # sizes of shapes must be positive numbers
+    if formula.endswith(("_area", "_volume", "_perimeter")):
+        for key in ("radius", "side", "length", "width", "height", "base",
+                    "side1", "side2", "side3"):
+            raw = request.GET.get(key)
+            if raw is None:
+                continue
+            try:
+                if float(raw) <= 0:
+                    return JsonResponse({"error": "Sizes must be greater than zero"}, status=400)
+            except ValueError:
+                pass  # the normal "invalid numbers" message below handles this
 
     try:
         if formula == "circle_area":
@@ -180,6 +274,8 @@ def formula_calculate(request):
 
         elif formula == "median":
             nums = sorted(get_numbers("numbers"))
+            if not nums:
+                raise ValueError("no numbers")
             mid = len(nums) // 2
             result = nums[mid] if len(nums) % 2 else (nums[mid - 1] + nums[mid]) / 2
 
@@ -233,6 +329,9 @@ def formula_calculate(request):
     except (TypeError, ValueError, ZeroDivisionError):
         return JsonResponse({"error": "Missing or invalid numbers"}, status=400)
 
+    if math.isnan(result) or math.isinf(result):
+        return JsonResponse({"error": "Missing or invalid numbers"}, status=400)
+
     return JsonResponse({"formula": formula, "result": round(result, 4)})
 
 
@@ -272,12 +371,15 @@ def get_current_rates():
     
 def currency_convert(request):
     amount = request.GET.get("amount")
-    from_cur = request.GET.get("from")
-    to_cur = request.GET.get("to")
+    from_cur = (request.GET.get("from") or "").upper()
+    to_cur = (request.GET.get("to") or "").upper()
 
     try:
         amount = float(amount)
     except (TypeError, ValueError):
+        return JsonResponse({"error": "amount must be a number"}, status=400)
+
+    if math.isnan(amount) or math.isinf(amount):
         return JsonResponse({"error": "amount must be a number"}, status=400)
 
     rates = get_current_rates()
@@ -288,4 +390,4 @@ def currency_convert(request):
     usd_value = amount / rates[from_cur]
     result = usd_value * rates[to_cur]
 
-    return JsonResponse({"result": round(result, 4)})  
+    return JsonResponse({"result": round(result, 4)})
