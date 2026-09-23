@@ -51,7 +51,7 @@ function updateResult(value) {
     document.getElementById("result").innerText = value;
 
 }
-function calculateResult() {
+async function calculateResult() {
 
     playButtonSound();
 
@@ -68,53 +68,73 @@ function calculateResult() {
         // Square root
         calcExpression = calcExpression.replace(
             /√\s*(\d+(?:\.\d+)?)/g,
-            "Math.sqrt($1)"
+            "sqrt($1)"
         );
 
         // SIN
+        // SIN
         calcExpression = calcExpression.replace(
             /sin\((\d+(?:\.\d+)?)\)/g,
-            function(match, num) {
-                return angleMode === "degree"
-                    ? "Math.sin(" + num + " * Math.PI / 180)"
-                    : "Math.sin(" + num + ")";
-            }
+            "sin($1)"
         );
+            
+        
 
+        
         // COS
         calcExpression = calcExpression.replace(
             /cos\((\d+(?:\.\d+)?)\)/g,
-            function(match, num) {
-                return angleMode === "degree"
-                    ? "Math.cos(" + num + " * Math.PI / 180)"
-                    : "Math.cos(" + num + ")";
-            }
+            "cos($1)"
         );
 
         // TAN
+        // TAN
+        // TAN
         calcExpression = calcExpression.replace(
-            /tan\((\d+(?:\.\d+)?)\)/g,
-            function(match, num) {
-                return angleMode === "degree"
-                    ? "Math.tan(" + num + " * Math.PI / 180)"
-                    : "Math.tan(" + num + ")";
-            }
-        );
+           /tan\((\d+(?:\.\d+)?)\)/g,
+           function(match, num) {
+            return angleMode === "radian"
+              ? "tan((" + num + ") * 180 / Math.PI)"
+              : "tan(" + num + ")";
+           }
+      );
+        
 
         // LOG
+        // LOG
         calcExpression = calcExpression.replace(
-            /log\((\d+(?:\.\d+)?)\)/g,
-            "Math.log10($1)"
+           /log\((\d+(?:\.\d+)?)\)/g,
+           "log($1)"
+      );
+
+       // LN
+        calcExpression = calcExpression.replace(
+           /ln\((\d+(?:\.\d+)?)\)/g,
+           "ln($1)"
+       );
+        // Send the calculation to Django backend
+    const response = await fetch(
+      "http://127.0.0.1:8000/api/calculate/?expression=" +
+       encodeURIComponent(calcExpression)
         );
 
-        // LN
-        calcExpression = calcExpression.replace(
-            /ln\((\d+(?:\.\d+)?)\)/g,
-            "Math.log($1)"
-        );
+    const data = await response.json();
 
-        // Calculate the complete expression
-        let answer = eval(calcExpression);
+    if (data.error) {
+    if (data.error === "Tangent is undefined") {
+        document.getElementById("result").innerText = "Undefined";
+        return;
+    }
+
+    throw new Error(data.error);
+}
+
+
+    let answer = data.result;
+        
+
+
+        
 
         // Show result
         document.getElementById("result").innerText =
@@ -628,7 +648,7 @@ shapeSelect.addEventListener("change", function () {
     value2.style.display = fields.length >= 2 ? "block" : "none";
     value3.style.display = fields.length >= 3 ? "block" : "none";
 });
-function calculateFormula() {
+async function calculateFormula() {
 
     let formula =
         document.getElementById("formulaSelect").value;
@@ -639,7 +659,7 @@ function calculateFormula() {
     let value1 =
         parseFloat(document.getElementById("value1").value);
 
-    let result = 0;
+    let result = null;
     let historyText = "";
     let inputText =
         document.getElementById("value1").value;
@@ -648,21 +668,41 @@ function calculateFormula() {
     if (formula === "Area") {
 
         if (shape === "Circle") {
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=circle_area&radius=" +
+        encodeURIComponent(value1)
+    );
 
-            result = Math.PI * value1 * value1;
+    const data = await response.json();
 
-            historyText =
-                "Area of Circle | Radius=" +
-                value1 +
-                " → " +
-                result.toFixed(2);
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
 
-        }
+    result = data.result;
+
+    historyText =
+        "Area of Circle | Radius=" +
+        value1 +
+        " → " +
+        result.toFixed(2);
+}
 
         else if (shape === "Square") {
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=square_area&side=" +
+        encodeURIComponent(value1)
+    );
 
-            result = value1 * value1;
+    const data = await response.json();
 
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
+
+    result = data.result;
             historyText =
                 "Area of Square | Side=" +
                 value1 +
@@ -671,60 +711,105 @@ function calculateFormula() {
 
         }
 
-        else if (shape === "Rectangle") {
+      else if (shape === "Rectangle") {
 
-            let length =
-                parseFloat(document.getElementById("value1").value);
+    let length =
+        parseFloat(document.getElementById("value1").value);
 
-            let width =
-                parseFloat(document.getElementById("value2").value);
+    let width =
+        parseFloat(document.getElementById("value2").value);
 
-            result = length * width;
+    console.log("Rectangle values:", length, width);
 
-            historyText =
-                "Area of Rectangle | Length=" +
-                length +
-                ", Width=" +
-                width +
-                " → " +
-                result.toFixed(2);
-        }
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=rectangle_area&length=" +
+        encodeURIComponent(length) +
+        "&width=" +
+        encodeURIComponent(width)
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
+
+    result = data.result;
+
+    historyText =
+        "Area of Rectangle | Length=" +
+        length +
+        ", Width=" +
+        width +
+        " → " +
+        result.toFixed(2);
+}
 
         else if (shape === "Triangle") {
 
-            let base =
-                parseFloat(document.getElementById("value1").value);
+    let base =
+        parseFloat(document.getElementById("value1").value);
 
-            let height =
-                parseFloat(document.getElementById("value2").value);
-            result = 0.5 * base * height;
+    let height =
+        parseFloat(document.getElementById("value2").value);
 
-            historyText =
-                "Area of Triangle | Base=" +
-                base +
-                ", Height=" +
-                height +
-                " → " +
-                result.toFixed(2);
-        }
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=triangle_area&base=" +
+        encodeURIComponent(base) +
+        "&height=" +
+        encodeURIComponent(height)
+    );
 
-        else if (shape === "Parallelogram") {
+    const data = await response.json();
 
-            let base =
-                parseFloat(document.getElementById("value1").value);
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
 
-            let height =
-                parseFloat(document.getElementById("value2").value);
-            result = base * height;
+    result = data.result;
 
-            historyText =
-                "Area of Parallelogram | Base=" +
-                base +
-                ", Height=" +
-                height +
-                " → " +
-                result.toFixed(2);
-        }
+    historyText =
+        "Area of Triangle | Base=" +
+        base +
+        ", Height=" +
+        height +
+        " → " +
+        result.toFixed(2);
+}
+       else if (shape === "Parallelogram") {
+
+    let base =
+        parseFloat(document.getElementById("value1").value);
+
+    let height =
+        parseFloat(document.getElementById("value2").value);
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=parallelogram_area&base=" +
+        encodeURIComponent(base) +
+        "&height=" +
+        encodeURIComponent(height)
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
+
+    result = data.result;
+
+    historyText =
+        "Area of Parallelogram | Base=" +
+        base +
+        ", Height=" +
+        height +
+        " → " +
+        result.toFixed(2);
+}
     }
     else if (formula === "Volume") {
 
@@ -736,64 +821,159 @@ function calculateFormula() {
 
         if (shape === "Cube") {
 
-            result = value1 * value1 * value1;
+    let side =
+        parseFloat(document.getElementById("value1").value);
 
-            historyText =
-                "Volume of Cube | Side=" +
-                value1 +
-                " → " +
-                result.toFixed(2);
-        }
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=cube_volume&side=" +
+        encodeURIComponent(side)
+    );
 
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
+
+    result = data.result;
+
+    historyText =
+        "Volume of Cube | Side=" +
+        side +
+        " → " +
+        result.toFixed(2);
+}
         else if (shape === "Cuboid") {
-            result = value1 * value2 * value3;
 
-            historyText =
-                "Volume of Cuboid | Length=" +
-                value1 +
-                ", Width=" +
-                value2 +
-                ", Height=" +
-                value3 +
-                " → " +
-                result.toFixed(2);
-        }
+    let length =
+        parseFloat(document.getElementById("value1").value);
 
-        else if (shape === "Cylinder") {
+    let width =
+        parseFloat(document.getElementById("value2").value);
 
-            result = Math.PI * value1 * value1 * value2;
+    let height =
+        parseFloat(document.getElementById("value3").value);
 
-            historyText =
-                "Volume of Cylinder | Radius=" +
-                value1 +
-                ", Height=" +
-                value2 +
-                " → " +
-                result.toFixed(2);
-        }
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=cuboid_volume&length=" +
+        encodeURIComponent(length) +
+        "&width=" +
+        encodeURIComponent(width) +
+        "&height=" +
+        encodeURIComponent(height)
+    );
 
-        else if (shape === "Cone") {
-            result = (1 / 3) * Math.PI * value1 * value1 * value2;
+    const data = await response.json();
 
-            historyText =
-                "Volume of Cone | Radius=" +
-                value1 +
-                ", Height=" +
-                value2 +
-                " → " +
-                result.toFixed(2);
-        }
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
 
-        else if (shape === "Sphere") {
+    result = data.result;
 
-            result = (4 / 3) * Math.PI * value1 * value1 * value1;
+    historyText =
+        "Volume of Cuboid | Length=" +
+        length +
+        ", Width=" +
+        width +
+        ", Height=" +
+        height +
+        " → " +
+        result.toFixed(2);
+}
 
-            historyText =
-                "Volume of Sphere | Radius=" +
-                value1 +
-                " → " +
-                result.toFixed(2);
-        }
+       else if (shape === "Cylinder") {
+
+    let radius =
+        parseFloat(document.getElementById("value1").value);
+
+    let height =
+        parseFloat(document.getElementById("value2").value);
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=cylinder_volume&radius=" +
+        encodeURIComponent(radius) +
+        "&height=" +
+        encodeURIComponent(height)
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
+
+    result = data.result;
+
+    historyText =
+        "Volume of Cylinder | Radius=" +
+        radius +
+        ", Height=" +
+        height +
+        " → " +
+        result.toFixed(2);
+}
+
+       else if (shape === "Cone") {
+
+    let radius =
+        parseFloat(document.getElementById("value1").value);
+
+    let height =
+        parseFloat(document.getElementById("value2").value);
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=cone_volume&radius=" +
+        encodeURIComponent(radius) +
+        "&height=" +
+        encodeURIComponent(height)
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
+
+    result = data.result;
+
+    historyText =
+        "Volume of Cone | Radius=" +
+        radius +
+        ", Height=" +
+        height +
+        " → " +
+        result.toFixed(2);
+}
+       else if (shape === "Sphere") {
+
+    let radius =
+        parseFloat(document.getElementById("value1").value);
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=sphere_volume&radius=" +
+        encodeURIComponent(radius)
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
+
+    result = data.result;
+
+    historyText =
+        "Volume of Sphere | Radius=" +
+        radius +
+        " → " +
+        result.toFixed(2);
+}
     }
     else if (formula === "Perimeter") {
 
@@ -801,325 +981,562 @@ function calculateFormula() {
             parseFloat(document.getElementById("value2").value);
 
         if (shape === "Square") {
-            result = 4 * value1;
 
-            historyText =
-                "Perimeter of Square | Side=" +
-                value1 +
-                " → " +
-                result.toFixed(2);
-        }
+    let side =
+        parseFloat(document.getElementById("value1").value);
 
-        else if (shape === "Rectangle") {
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=square_perimeter&side=" +
+        encodeURIComponent(side)
+    );
 
-            result = 2 * (value1 + value2);
+    const data = await response.json();
 
-            historyText =
-                "Perimeter of Rectangle | Length=" +
-                value1 +
-                ", Width=" +
-                value2 +
-                " → " +
-                result.toFixed(2);
-        }
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
+
+    result = data.result;
+
+    historyText =
+        "Perimeter of Square | Side=" +
+        side +
+        " → " +
+        result.toFixed(2);
+}
+else if (shape === "Rectangle") {
+
+    let length =
+        parseFloat(document.getElementById("value1").value);
+
+    let width =
+        parseFloat(document.getElementById("value2").value);
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=rectangle_perimeter&length=" +
+        encodeURIComponent(length) +
+        "&width=" +
+        encodeURIComponent(width)
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
+
+    result = data.result;
+
+    historyText =
+        "Perimeter of Rectangle | Length=" +
+        length +
+        ", Width=" +
+        width +
+        " → " +
+        result.toFixed(2);
+}
 
         else if (shape === "Triangle") {
 
-            {
+    let a =
+        parseFloat(document.getElementById("value1").value);
 
-                let side1 =
-                    parseFloat(document.getElementById("value1").value);
+    let b =
+        parseFloat(document.getElementById("value2").value);
 
-                let side2 =
-                    parseFloat(document.getElementById("value2").value);
+    let c =
+        parseFloat(document.getElementById("value3").value);
 
-                let side3 =
-                    parseFloat(document.getElementById("value3").value);
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=triangle_perimeter" +
+      "&side1=" + encodeURIComponent(a) +
+      "&side2=" + encodeURIComponent(b) +
+      "&side3=" + encodeURIComponent(c)
+    );
 
-                result = side1 + side2 + side3;
-                historyText =
-                    "Perimeter of Triangle | Sides=" +
-                    side1 + "," + side2 + "," + side3 +
-                    " → " +
-                    result.toFixed(2);
-            }
-        }
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
+
+    result = data.result;
+
+    historyText =
+        "Perimeter of Triangle | A=" +
+        a +
+        ", B=" +
+        b +
+        ", C=" +
+        c +
+        " → " +
+        result.toFixed(2);
+}
+    
 
         else if (shape === "Circle") {
 
-            result = 2 * Math.PI * value1;
+    let radius =
+        parseFloat(document.getElementById("value1").value);
 
-            historyText =
-                "Circumference of Circle | Radius=" +
-                value1 +
-                " → " +
-                result.toFixed(2);
-        }
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=circle_perimeter&radius=" +
+        encodeURIComponent(radius)
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
+
+    result = data.result;
+
+    historyText =
+        "Perimeter of Circle | Radius=" +
+        radius +
+        " → " +
+        result.toFixed(2);
+}
 
         else if (shape === "Parallelogram") {
 
-            result = 2 * (value1 + value2);
+    let base =
+        parseFloat(document.getElementById("value1").value);
 
-            historyText =
-                "Perimeter of Parallelogram | Base=" +
-                value1 +
-                ", Side=" +
-                value2 +
-                " → " +
-                result.toFixed(2);
-        }
+    let side =
+        parseFloat(document.getElementById("value2").value);
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=parallelogram_perimeter" +
+        "&base=" + encodeURIComponent(base) +
+        "&side=" + encodeURIComponent(side)
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
     }
-    else if (formula === "Speed") {
 
-        let distance =
-            parseFloat(document.getElementById("value1").value);
+    result = data.result;
 
-        let time =
-            parseFloat(document.getElementById("value2").value);
-
-        result = distance / time;
-        historyText =
-            "Speed | Distance=" +
-            distance +
-            ", Time=" +
-            time +
-            " → " +
-            result.toFixed(2);
+    historyText =
+        "Perimeter of Parallelogram | Base=" +
+        base +
+        ", Side=" +
+        side +
+        " → " +
+        result.toFixed(2);
+}
     }
+   else if (formula === "Speed") {
+
+    let distance =
+        parseFloat(document.getElementById("value1").value);
+
+    let time =
+        parseFloat(document.getElementById("value2").value);
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=speed" +
+        "&distance=" + encodeURIComponent(distance) +
+        "&time=" + encodeURIComponent(time)
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
+
+    result = data.result;
+
+    historyText =
+        "Speed | Distance=" +
+        distance +
+        ", Time=" +
+        time +
+        " → " +
+        result.toFixed(2);
+}
     else if (formula === "Simple Interest") {
 
-        let principal =
-            parseFloat(document.getElementById("value1").value);
+    let principal =
+        parseFloat(document.getElementById("value1").value);
 
-        let rate =
-            parseFloat(document.getElementById("value2").value);
+    let rate =
+        parseFloat(document.getElementById("value2").value);
 
-        let time =
-            parseFloat(document.getElementById("value3").value);
+    let time =
+        parseFloat(document.getElementById("value3").value);
 
-        result = (principal * rate * time) / 100;
-        historyText =
-            "Simple Interest | P=" +
-            principal +
-            ", R=" +
-            rate +
-            ", T=" +
-            time +
-            " → " +
-            result.toFixed(2);
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=simple_interest" +
+        "&principal=" + encodeURIComponent(principal) +
+        "&rate=" + encodeURIComponent(rate) +
+        "&time=" + encodeURIComponent(time)
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
     }
+
+    result = data.result;
+
+    historyText =
+        "Simple Interest | Principal=" +
+        principal +
+        ", Rate=" +
+        rate +
+        ", Time=" +
+        time +
+        " → " +
+        result.toFixed(2);
+}
     else if (formula === "BMI") {
 
-        let weight =
-            parseFloat(document.getElementById("value1").value);
+    let weight =
+        parseFloat(document.getElementById("value1").value);
 
-        let height =
-            parseFloat(document.getElementById("value2").value);
+    let height =
+        parseFloat(document.getElementById("value2").value);
 
-        result = weight / (height * height);
-        historyText =
-            "BMI | Weight=" +
-            weight +
-            ", Height=" +
-            height +
-            " → " +
-            result.toFixed(2);
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=bmi" +
+        "&weight=" + encodeURIComponent(weight) +
+        "&height=" + encodeURIComponent(height)
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
     }
-    else if (formula === "Percentage") {
 
-        let obtained =
-            parseFloat(document.getElementById("value1").value);
+    result = data.result;
 
-        let total =
-            parseFloat(document.getElementById("value2").value);
-
-        result = (obtained / total) * 100;
-        historyText =
-            "Percentage | Marks=" +
-            obtained +
-            "/" +
-            total +
-            " → " +
-            result.toFixed(2) + "%";
+    historyText =
+        "BMI | Weight=" +
+        weight +
+        ", Height=" +
+        height +
+        " → " +
+        result.toFixed(2);
     }
+else if (formula === "Percentage") {
+
+    let value =
+        parseFloat(document.getElementById("value1").value);
+
+    let total =
+        parseFloat(document.getElementById("value2").value);
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=percentage" +
+        "&part=" + encodeURIComponent(value) +
+        "&whole=" + encodeURIComponent(total)
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
+    }
+
+    result = data.result;
+
+    historyText =
+        "Percentage | Value=" +
+        value +
+        ", Total=" +
+        total +
+        " → " +
+        result.toFixed(2);
+}
+
     else if (formula === "Mean") {
 
-        let numbers =
-            document.getElementById("value1").value
-                .split(",")
-                .map(Number);
+    let numbers =
+        document.getElementById("value1").value
+            .split(",")
+            .map(Number);
 
-        let sum = 0;
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=mean" +
+        "&numbers=" + encodeURIComponent(numbers.join(","))
+    );
 
-        for (let i = 0; i < numbers.length; i++) {
-            sum += numbers[i];
-        }
+    const data = await response.json();
 
-        result = sum / numbers.length;
-        historyText =
-            "Mean | Data=" +
-            numbers.join(",") +
-            " → " +
-            result.toFixed(2);
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
     }
+
+    result = data.result;
+
+    historyText =
+        "Mean | Data=" +
+        numbers.join(",") +
+        " → " +
+        result.toFixed(2);
+}
     else if (formula === "Median") {
 
-        let numbers =
-            document.getElementById("value1").value
-                .split(",")
-                .map(Number);
+    let numbers =
+        document.getElementById("value1").value
+            .split(",")
+            .map(Number);
 
-        numbers.sort((a, b) => a - b);
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=median" +
+        "&numbers=" + encodeURIComponent(numbers.join(","))
+    );
 
-        let middle =
-            Math.floor(numbers.length / 2);
+    const data = await response.json();
 
-        if (numbers.length % 2 === 0) {
-
-            result =
-                (numbers[middle - 1] + numbers[middle]) / 2;
-        }
-        else {
-
-            result = numbers[middle];
-        }
-        historyText =
-            "Median | Data=" +
-            numbers.join(",") +
-            " → " +
-            result.toFixed(2);
+    if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        return;
     }
-    else if (formula === "Mode") {
 
-        let numbers =
-            document.getElementById("value1").value
-                .split(",")
-                .map(Number);
+    result = data.result;
 
-        let count = {};
-        let maxCount = 0;
-        let mode = numbers[0];
+    historyText =
+        "Median | Data=" +
+        numbers.join(",") +
+        " → " +
+        result.toFixed(2);
+}
+else if (formula === "Mode") {
 
-        for (let num of numbers) {
+    let input =
+        document.getElementById("value1").value.trim();
 
-            count[num] = (count[num] || 0) + 1;
+    let numbers =
+        input.split(",").map(Number);
 
-            if (count[num] > maxCount) {
-
-                maxCount = count[num];
-                mode = num;
-            }
-        }
-
-        result = mode;
-        historyText =
-            "Mode | Data=" +
-            numbers.join(",") +
-            " → " +
-            result;
+    if (
+        numbers.length === 0 ||
+        numbers.some(num => isNaN(num))
+    ) {
+        document.getElementById("result").innerText =
+            "Enter valid values";
+        return;
     }
-    else if (formula === "Variance") {
 
-        let numbers =
-            document.getElementById("value1").value
-                .split(",")
-                .map(Number);
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=mode" +
+        "&numbers=" +
+        encodeURIComponent(numbers.join(","))
+    );
 
-        let mean =
-            numbers.reduce((a, b) => a + b, 0) / numbers.length;
+    const data = await response.json();
 
-        let variance =
-            numbers.reduce((sum, num) =>
-                sum + Math.pow(num - mean, 2), 0)
-            / numbers.length;
-
-        result = variance;
-        historyText =
-            "Variance | Data=" +
-            numbers.join(",") +
-            " → " +
-            result.toFixed(2);
+    if (data.error) {
+        document.getElementById("result").innerText =
+            data.error;
+        return;
     }
+
+    result = Number(data.result);
+
+    historyText =
+        "Mode | Data=" +
+        numbers.join(",") +
+        " → " +
+        result.toFixed(2);
+}
+
+
+   else if (formula === "Variance") {
+
+    let numbers =
+        document.getElementById("value1").value
+            .split(",")
+            .map(Number);
+
+    if (
+        numbers.length === 0 ||
+        numbers.some(num => isNaN(num))
+    ) {
+        document.getElementById("result").innerText =
+            "Enter valid values";
+        return;
+    }
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=variance_population" +
+        "&numbers=" +
+        encodeURIComponent(numbers.join(","))
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText =
+            data.error;
+        return;
+    }
+
+    result = Number(data.result);
+
+    historyText =
+        "Variance | Data=" +
+        numbers.join(",") +
+        " → " +
+        result.toFixed(2);
+}
     else if (formula === "Standard Deviation") {
 
-        let numbers =
-            document.getElementById("value1").value
-                .split(",")
-                .map(Number);
+    let numbers =
+        document.getElementById("value1").value
+            .split(",")
+            .map(Number);
 
-        let mean =
-            numbers.reduce((a, b) => a + b, 0) / numbers.length;
-
-        let variance =
-            numbers.reduce((sum, num) =>
-                sum + Math.pow(num - mean, 2), 0)
-            / numbers.length;
-
-        result = Math.sqrt(variance);
-        historyText =
-            "Standard Deviation | Data=" +
-            numbers.join(",") +
-            " → " +
-            result.toFixed(2);
+    if (
+        numbers.length === 0 ||
+        numbers.some(num => isNaN(num))
+    ) {
+        document.getElementById("result").innerText =
+            "Enter valid values";
+        return;
     }
-    else if (formula === "Z-Score") {
 
-        let x =
-            parseFloat(document.getElementById("value1").value);
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=std_dev_population" +
+        "&numbers=" +
+        encodeURIComponent(numbers.join(","))
+    );
 
-        let mean =
-            parseFloat(document.getElementById("value2").value);
+    const data = await response.json();
 
-        let stdDev =
-            parseFloat(document.getElementById("value3").value);
-
-        result = (x - mean) / stdDev;
-        historyText =
-            "Z-Score | X=" +
-            x +
-            ", Mean=" +
-            mean +
-            ", SD=" +
-            stdDev +
-            " → " +
-            result.toFixed(2);
+    if (data.error) {
+        document.getElementById("result").innerText =
+            data.error;
+        return;
     }
-    else if (formula === "Covariance") {
 
-        let x =
-            document.getElementById("value1").value
-                .split(",")
-                .map(Number);
+    result = Number(data.result);
 
-        let y =
-            document.getElementById("value2").value
-                .split(",")
-                .map(Number);
+    historyText =
+        "Standard Deviation | Data=" +
+        numbers.join(",") +
+        " → " +
+        result.toFixed(2);
+}
+else if (formula === "Z-Score") {
 
-        let meanX =
-            x.reduce((a, b) => a + b, 0) / x.length;
+    let x = parseFloat(
+        document.getElementById("value1").value
+    );
 
-        let meanY =
-            y.reduce((a, b) => a + b, 0) / y.length;
+    let mean = parseFloat(
+        document.getElementById("value2").value
+    );
 
-        let sum = 0;
+    let stdDev = parseFloat(
+        document.getElementById("value3").value
+    );
 
-        for (let i = 0; i < x.length; i++) {
-
-            sum +=
-                (x[i] - meanX) *
-                (y[i] - meanY);
-        }
-
-        result = sum / x.length;
-        historyText =
-            "Covariance | X=" +
-            x.join(",") +
-            " | Y=" +
-            y.join(",") +
-            " → " +
-            result.toFixed(2);
+    if (
+        isNaN(x) ||
+        isNaN(mean) ||
+        isNaN(stdDev)
+    ) {
+        document.getElementById("result").innerText =
+            "Enter valid values";
+        return;
     }
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=z_score" +
+        "&value=" + encodeURIComponent(x) +
+        "&mean=" + encodeURIComponent(mean) +
+        "&std_dev=" + encodeURIComponent(stdDev)
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText =
+            data.error;
+        return;
+    }
+
+    result = Number(data.result);
+
+    historyText =
+        "Z-Score | X=" + x +
+        ", Mean=" + mean +
+        ", SD=" + stdDev +
+        " → " + result.toFixed(2);
+
+}
+else if (formula === "Covariance") {
+    let xValues =
+        document.getElementById("value1").value
+            .split(",")
+            .map(Number);
+
+    let yValues =
+        document.getElementById("value2").value
+            .split(",")
+            .map(Number);
+
+    if (
+        xValues.length === 0 ||
+        yValues.length === 0 ||
+        xValues.some(num => isNaN(num)) ||
+        yValues.some(num => isNaN(num))
+    ) {
+        document.getElementById("result").innerText =
+            "Enter valid values";
+        return;
+    }
+
+    if (xValues.length !== yValues.length) {
+        document.getElementById("result").innerText =
+            "Both datasets must have the same length";
+        return;
+    }
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/formula/?formula=covariance" +
+        "&numbers_x=" + encodeURIComponent(xValues.join(",")) +
+        "&numbers_y=" + encodeURIComponent(yValues.join(","))
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        document.getElementById("result").innerText =
+            data.error;
+        return;
+    }
+
+    result = Number(data.result);
+
+    historyText =
+        "Covariance | X=" +
+        xValues.join(",") +
+        " | Y=" +
+        yValues.join(",") +
+        " → " +
+        result.toFixed(2);
+}
     let invalidSize = false;
 
     if (formula === "Area" || formula === "Volume" || formula === "Perimeter") {
@@ -1301,7 +1718,7 @@ function currencyName(code, amount) {
 // what Echoo says out loud for the last currency result
 let currencySpeech = null;
 
-function convertCurrency() {
+ async function convertCurrency() {
 
     let amount =
         parseFloat(document.getElementById("currencyAmount").value);
@@ -1316,94 +1733,134 @@ function convertCurrency() {
 
     let result = 0;
 
-    const parts = type.split(" \u2192 ");
+    const parts = type.split(" → ");
     const from = parts[0];
     const to = parts[1];
 
-    if (from === "INR" && currencyRates[to]) {
-        result = amount / currencyRates[to];
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:8000/api/currency/?from=" +
+            encodeURIComponent(from) +
+            "&to=" +
+            encodeURIComponent(to) +
+            "&amount=" +
+            encodeURIComponent(amount)
+        );
+
+        const data = await response.json();
+
+        if (data.error) {
+            document.getElementById("result").innerText = data.error;
+            return;
+        }
+
+        result = Number(data.result);
+
+        const shown = result.toFixed(2);
+        const toName = currencyName(to, result);
+        const fromName = currencyName(from, amount);
+
+        const resultBox = document.getElementById("result");
+        resultBox.innerHTML = "";
+
+        const numberLine = document.createElement("div");
+        numberLine.innerText = shown + " " + to;
+
+        const nameLine = document.createElement("div");
+        nameLine.className = "result-currency-name";
+        nameLine.innerText = toName;
+
+        resultBox.appendChild(numberLine);
+        resultBox.appendChild(nameLine);
+
+        currencySpeech = {
+            display: resultBox.innerText,
+            speech: shown + " " + toName
+        };
+
+        const expressionBox = document.getElementById("expression");
+
+        if (expressionBox) {
+            expressionBox.innerText =
+                amount + " " + from +
+                " (" + fromName + ") → " + to;
+        }
+
+        historyList.push(
+            amount + " " + from +
+            " = " + shown + " " + to
+        );
+
+        saveHistory();
+        resetRightPanel();
+
+    } catch (error) {
+
+        console.error("Currency Conversion Error:", error);
+
+        document.getElementById("result").innerText =
+            "Currency conversion failed";
     }
-    else if (to === "INR" && currencyRates[from]) {
-        result = amount * currencyRates[from];
-    }
-
-    const shown = result.toFixed(2);
-    const toName = currencyName(to, result);
-    const fromName = currencyName(from, amount);
-
-    const resultBox = document.getElementById("result");
-    resultBox.innerHTML = "";
-
-    const numberLine = document.createElement("div");
-    numberLine.innerText = shown + " " + to;
-
-    const nameLine = document.createElement("div");
-    nameLine.className = "result-currency-name";
-    nameLine.innerText = toName;
-
-    resultBox.appendChild(numberLine);
-    resultBox.appendChild(nameLine);
-
-    currencySpeech = {
-        display: resultBox.innerText,
-        speech: shown + " " + toName
-    };
-
-    const expressionBox = document.getElementById("expression");
-    if (expressionBox) {
-        expressionBox.innerText =
-            amount + " " + from + " (" + fromName + ") \u2192 " + to;
-    }
-
-    historyList.push(
-        amount + " " + from + " = " + shown + " " + to
-    );
-    saveHistory();
-    resetRightPanel();
 }
+async function convertBinary() {
 
-function convertBinary() {
-
-    let value = document.getElementById("binaryValue").value;
-
+    let value = document.getElementById("binaryValue").value.trim();
     let type = document.getElementById("binarySelect").value;
 
-    let result = "";
-
-    if (type === "Decimal → Binary") {
-        result = parseInt(value, 10).toString(2);
+    if (!value) {
+        document.getElementById("result").innerText = "Error";
+        return;
     }
 
-    else if (type === "Binary → Decimal") {
-        result = parseInt(value, 2);
-    }
+    const directionMap = {
+        "Decimal → Binary": "dec_to_bin",
+        "Binary → Decimal": "bin_to_dec",
+        "Decimal → Octal": "dec_to_oct",
+        "Octal → Decimal": "oct_to_dec",
+        "Decimal → Hexadecimal": "dec_to_hex",
+        "Hexadecimal → Decimal": "hex_to_dec"
+    };
 
-    else if (type === "Decimal → Octal") {
-        result = parseInt(value, 10).toString(8);
-    }
+    const direction = directionMap[type];
 
-    else if (type === "Octal → Decimal") {
-        result = parseInt(value, 8);
-    }
+    try {
 
-    else if (type === "Decimal → Hexadecimal") {
-        result = parseInt(value, 10).toString(16).toUpperCase();
-    }
+        const response = await fetch(
+            "http://127.0.0.1:8000/api/binary/?direction=" +
+            encodeURIComponent(direction) +
+            "&value=" +
+            encodeURIComponent(value)
+        );
 
-    else if (type === "Hexadecimal → Decimal") {
-        result = parseInt(value, 16);
-    }
-    document.getElementById("result").innerText =
-        result;
+        const data = await response.json();
 
-    historyList.push(
-        type + ": " +
-        value + " = " +
-        result
-    );
-    saveHistory();
-    resetRightPanel();
+        if (data.error) {
+            document.getElementById("result").innerText = data.error;
+            return;
+        }
+
+        const result = data.result;
+
+        document.getElementById("result").innerText = result;
+
+        historyList.push(
+            type + ": " +
+            value + " = " +
+            result
+        );
+
+        saveHistory();
+        resetRightPanel();
+
+    } catch (error) {
+
+        console.error("Binary Conversion Error:", error);
+        document.getElementById("result").innerText = "Error";
+
+    }
 }
+
 
 function openHistory() {
     document.getElementById("sideMenu").style.display = "none"
@@ -1623,7 +2080,7 @@ function startVoiceInput() {
 
     recognition.lang = "en-US";
     recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    recognition.maxAlternatives = 5;
 
     const soundWave = document.querySelector(".sound-wave");
 
@@ -1639,9 +2096,20 @@ function startVoiceInput() {
     // Get the spoken command
     recognition.onresult = function (event) {
 
-        let speechText =
-            event.results[0][0].transcript.toLowerCase();
+        let alternatives = event.results[0];
 
+        let speechText = alternatives[0].transcript.toLowerCase();
+
+       for (let i = 0; i < alternatives.length; i++) {
+            let candidate = alternatives[i].transcript.toLowerCase();
+
+            if (
+              /\b(dollar|dollars|rupee|rupees|euro|euros|pound|pounds|usd|inr|eur|gbp)\b/.test(candidate)
+              ) {
+                  speechText = candidate;
+                   break;
+    }
+}
         console.log("You said:", speechText);
 
         processVoiceCommand(speechText);
@@ -1669,7 +2137,7 @@ function startVoiceInput() {
     recognition.start();
 }
 
-function processVoiceCommand(text) {
+async function processVoiceCommand(text) {
 
     // =========================================================
     // ECHOO FINAL VOICE COMMAND HANDLER
@@ -1719,6 +2187,7 @@ function speak(message) {
     function closeAllPanels() {
 
         const formulaPanel =
+
             document.getElementById("formulaContainer");
 
         const currencyPanel =
@@ -2426,7 +2895,7 @@ function speak(message) {
                         currencyAmountEl.value = amount;
                     }
 
-                    convertCurrency();
+                    await convertCurrency();
 
                     resultOnlyVoice();
 
@@ -2626,7 +3095,7 @@ function speak(message) {
 
                         binaryValueEl.value = rawValue;
 
-                        convertBinary();
+                        await convertBinary();
 
                         resultOnlyVoice();
 
@@ -2932,7 +3401,7 @@ function speak(message) {
                 value1El.value =
                     formulaNumbers[0];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -2958,7 +3427,7 @@ function speak(message) {
                 value2El.value =
                     formulaNumbers[1];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -2981,7 +3450,7 @@ function speak(message) {
                 value1El.value =
                     formulaNumbers[0];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3007,7 +3476,7 @@ function speak(message) {
                 value2El.value =
                     formulaNumbers[1];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3033,7 +3502,7 @@ function speak(message) {
                 value2El.value =
                     formulaNumbers[1];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3058,7 +3527,7 @@ function speak(message) {
                 value1El.value =
                     formulaNumbers[0];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3087,7 +3556,7 @@ function speak(message) {
                 value3El.value =
                     formulaNumbers[2];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3113,7 +3582,7 @@ function speak(message) {
                 value2El.value =
                     formulaNumbers[1];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3139,7 +3608,7 @@ function speak(message) {
                 value2El.value =
                     formulaNumbers[1];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3162,7 +3631,7 @@ function speak(message) {
                 value1El.value =
                     formulaNumbers[0];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3187,7 +3656,7 @@ function speak(message) {
                 value1El.value =
                     formulaNumbers[0];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3213,7 +3682,7 @@ function speak(message) {
                 value2El.value =
                     formulaNumbers[1];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3242,7 +3711,7 @@ function speak(message) {
                 value3El.value =
                     formulaNumbers[2];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3266,7 +3735,7 @@ function speak(message) {
                 value1El.value =
                     formulaNumbers[0];
 
-                calculateFormula();
+                await  calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3292,7 +3761,7 @@ function speak(message) {
                 value2El.value =
                     formulaNumbers[1];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3316,7 +3785,7 @@ function speak(message) {
                 value2El.value =
                     formulaNumbers[1];
 
-                calculateFormula();
+                await  calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3345,7 +3814,7 @@ function speak(message) {
                 value3El.value =
                     formulaNumbers[2];
 
-                calculateFormula();
+                 await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3383,7 +3852,7 @@ function speak(message) {
                 value2El.value =
                     height;
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3410,7 +3879,7 @@ function speak(message) {
                 value2El.value =
                     formulaNumbers[1];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3439,7 +3908,7 @@ function speak(message) {
                 value3El.value =
                     formulaNumbers[2];
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3490,7 +3959,7 @@ function speak(message) {
                     value2El.value =
                         yValues.join(",");
 
-                    calculateFormula();
+                    await calculateFormula();
 
                     resultOnlyVoice();
 
@@ -3526,7 +3995,7 @@ function speak(message) {
                 value2El.value =
                     yValues.join(",");
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3548,7 +4017,7 @@ function speak(message) {
                 value1El.value =
                     formulaNumbers.join(",");
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3569,7 +4038,7 @@ function speak(message) {
                 value1El.value =
                     formulaNumbers.join(",");
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3590,7 +4059,7 @@ function speak(message) {
                 value1El.value =
                     formulaNumbers.join(",");
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3613,7 +4082,7 @@ function speak(message) {
                 value1El.value =
                     formulaNumbers.join(",");
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3636,7 +4105,7 @@ function speak(message) {
                 value1El.value =
                     formulaNumbers.join(",");
 
-                calculateFormula();
+                await calculateFormula();
 
                 resultOnlyVoice();
 
@@ -3693,7 +4162,7 @@ function speak(message) {
             .replace(/(\d+)\s*(?:factorial|!)/g, function (m, n) {
                 return factorialOf(n);
             })
-            .replace(/(\d+(?:\.\d+)?|\bpi|\be)\s+squared\b/g, "$1**2")
+            .replace(/(\d+(?:\.\d+)?|\bpi|\be)\s+square(?:d)?\b/g, "$1**2")
             .replace(/(\d+(?:\.\d+)?|\bpi|\be)\s+cubed\b/g, "$1**3")
             .replace(/\bsquare\s+of\s+(\d+(?:\.\d+)?)/g, "$1**2")
             .replace(
@@ -3814,24 +4283,6 @@ function speak(message) {
 
         speak("Command not understood");
     }
-function factorialValue() {
-    playButtonSound();
-
-    let num = parseInt(expression);
-
-    if (isNaN(num)) {
-        document.getElementById("result").innerText = "Error";
-        return;
-    }
-
-    let fact = 1;
-
-    for (let i = 1; i <= num; i++) {
-        fact *= i;
-    }
-
-    document.getElementById("result").innerText = fact;
-}
 
 function powerMode() {
     playButtonSound();

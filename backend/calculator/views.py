@@ -15,18 +15,68 @@ def home(request):
     return JsonResponse({
         "message": "Scientific Voice Calculator Backend is Working!"
     })
+def binary_convert(request):
+    direction = request.GET.get("direction", "")
+    value = request.GET.get("value", "").strip()
+
+    if not value:
+        return JsonResponse({"error": "Please provide a value"}, status=400)
+
+    conversions = {
+        "dec_to_bin": (10, "b"),
+        "bin_to_dec": (2, "d"),
+        "dec_to_oct": (10, "o"),
+        "oct_to_dec": (8, "d"),
+        "dec_to_hex": (10, "X"),
+        "hex_to_dec": (16, "d"),
+    }
+
+    if direction not in conversions:
+        return JsonResponse(
+            {"error": "Invalid conversion direction"},
+            status=400
+        )
+
+    input_base, output_format = conversions[direction]
+
+    try:
+        number = int(value, input_base)
+    except ValueError:
+        return JsonResponse(
+            {"error": "Invalid number for this conversion"},
+            status=400
+        )
+
+    return JsonResponse({
+        "result": format(number, output_format)
+    })
 
 
 MAX_EXPRESSION_LENGTH = 200
+def safe_tan(x):
+    radians = math.radians(x)
 
+    # tan(x) is undefined when cos(x) is zero
+    if math.isclose(math.cos(radians), 0.0, abs_tol=1e-12):
+        raise ValueError("Tangent is undefined")
+
+    return math.tan(radians)
+
+def factorial_value(x):
+    if not float(x).is_integer() or x < 0:
+        raise ValueError("Factorial is only defined for non-negative integers")
+
+    return math.factorial(int(x))
+    
 # only these functions and constants may appear in an expression
 SAFE_FUNCTIONS = {
     "sin": lambda x: math.sin(math.radians(x)),
     "cos": lambda x: math.cos(math.radians(x)),
-    "tan": lambda x: math.tan(math.radians(x)),
+    "tan": safe_tan,
     "sqrt": math.sqrt,
     "log": math.log10,
     "ln": math.log,
+    "factorial": factorial_value,
 }
 
 SAFE_CONSTANTS = {
@@ -103,50 +153,15 @@ def calculate(request):
     safe_expr = expression.replace("^", "**")  # ^ means "power" here
 
     try:
-        result = _evaluate(ast.parse(safe_expr.strip(), mode="eval").body)
+      result = _evaluate(ast.parse(safe_expr.strip(), mode="eval").body)
+    except ValueError as e:
+      return JsonResponse({"error": str(e)}, status=400)
     except Exception:
-        return JsonResponse({"error": "Could not calculate that"}, status=400)
-
-    if isinstance(result, float) and (math.isnan(result) or math.isinf(result)):
-        return JsonResponse({"error": "Could not calculate that"}, status=400)
+     return JsonResponse({"error": "Could not calculate that"}, status=400)
 
     return JsonResponse({"expression": expression, "result": result})
 
 
-def binary_convert(request):
-    direction = request.GET.get("direction", "")
-    value = request.GET.get("value", "").strip()
-
-    if not value:
-        return JsonResponse({"error": "Please provide a value"}, status=400)
-
-    if "_" in value or " " in value:
-        return JsonResponse({"error": "Invalid number for this conversion"}, status=400)
-
-    # direction -> (base the input is written in, how to write the answer)
-    conversions = {
-        "dec_to_bin": (10, "b"),
-        "bin_to_dec": (2, "d"),
-        "dec_to_oct": (10, "o"),
-        "oct_to_dec": (8, "d"),
-        "dec_to_hex": (10, "X"),
-        "hex_to_dec": (16, "d"),
-    }
-
-    if direction not in conversions:
-        return JsonResponse(
-            {"error": "direction must be one of: " + ", ".join(conversions)},
-            status=400,
-        )
-
-    input_base, output_format = conversions[direction]
-
-    try:
-        number = int(value, input_base)
-    except ValueError:
-        return JsonResponse({"error": "Invalid number for this conversion"}, status=400)
-
-    return JsonResponse({"result": format(number, output_format)})
 
 
 def formula_calculate(request):
